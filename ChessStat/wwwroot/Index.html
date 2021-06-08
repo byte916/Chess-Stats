@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+<script src="scripts/jquery-3.6.0.min.js"></script>
+<style>
+    table {
+        border-collapse: collapse;
+    }
+
+    td {
+        padding: 6px;
+        border: 1px solid black;
+    }
+</style>
+<script>
+    $(document).ready(() => {
+        $("#getData").on("click", () => {
+            $.ajax({
+                url: 'stat',
+                data: "chessId="+$("#chess-id").val(),
+                success: function (result) {
+                    showResult(result);
+                }
+            });
+        })
+    })
+
+    function showResult(result) {
+        $("#name").html(result.name);
+        var table = $("#rivals");
+        result.rivals.forEach(r => {
+            var row = $("<tr/>");
+            row.append(addCell(r.id));
+            row.append(addCell(r.name));
+            row.append(addCell(r.games));
+            table.append(row);
+        });
+    }
+
+    function addCell(data) {
+        var cell = $("<td/>");
+        cell.html(data);
+        return cell;
+    }
+</script>
+<h1>Статистика РШФ</h1><br/>
+<input type="text" id="chess-id"/>
+<input type="button" id="getData" value="Получить"/>
+<br/>
+<br />
+<br />
+<div>
+    <span id="name"></span>
+    <table>
+        <thead>
+        <tr>
+            <th>Id</th>
+            <th>Имя</th>
+            <th>Всего игр</th>
+        </tr>
+        </thead>
+        <tbody id="rivals"></tbody>
+    </table>
+</div>
+</body>
+</html>
