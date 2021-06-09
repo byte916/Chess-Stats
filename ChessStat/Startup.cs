@@ -18,12 +18,6 @@ namespace ChessStat
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (!Directory.Exists("Cache")) Directory.CreateDirectory("Cache");
-
-            if (!Directory.Exists("Cache/Users")) Directory.CreateDirectory("Cache/Users");
-            if (!Directory.Exists("Cache/Tournaments")) Directory.CreateDirectory("Cache/Tournaments");
-            if (!Directory.Exists("Cache/TournamentInfo")) Directory.CreateDirectory("Cache/TournamentInfo");
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

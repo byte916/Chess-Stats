@@ -22,10 +22,10 @@ namespace ChessStat.Classes
                 TournamentStats = new List<TourStat[]>()
             };
             if (string.IsNullOrWhiteSpace(id)) return _userInfo;
-            var userInfo = GetUser(id);
+            var userInfo = new Cache().GetUser(id);
             _userInfo.Name = userInfo.DocumentNode.SelectSingleNode("//div[contains(@class, 'page-header')]/h1").GetDirectInnerText();
 
-            var tournamentsInfo = GetTournamentInfo(id);
+            var tournamentsInfo = new Cache().GetTournamentInfo(id);
             var tournaments = tournamentsInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-hover')]//a").Select(n=>n.GetAttributeValue("href", "")).ToList();
             
             foreach (var tournament in tournaments)
@@ -58,59 +58,11 @@ namespace ChessStat.Classes
             return _userInfo;
         }
 
-        public HtmlDocument GetTournamentInfo(string id)
-        {
-            var doc = new HtmlDocument();
-            if (File.Exists("Cache/TournamentInfo/" + id))
-            {
-                doc.LoadHtml(File.ReadAllText("Cache/TournamentInfo/" + id));
-                return doc;
-            }
-
-            var tournamentsUrl = "https://ratings.ruchess.ru/people/" + id + "/tournaments";
-            doc = new HtmlWeb().Load(tournamentsUrl);
-
-            File.WriteAllText("Cache/TournamentInfo/" + id, doc.Text);
-            return doc;
-        }
-
-        public HtmlDocument GetUser(string id)
-        {
-            var doc = new HtmlDocument();
-            if (File.Exists("Cache/Users/" + id))
-            {
-                doc.LoadHtml(File.ReadAllText("Cache/Users/" + id));
-                return doc;
-            }
-            
-            var userInfoUrl = "https://ratings.ruchess.ru/people/" + id;
-            doc = new HtmlWeb().Load(userInfoUrl);
-
-            File.WriteAllText("Cache/Users/" + id, doc.Text);
-            return doc;
-        }
-
-        public HtmlDocument GetTournament(string url)
-        {
-            var id = url.Replace("/tournaments/", "");
-            
-            var doc = new HtmlDocument();
-            if (File.Exists("Cache/Tournaments/" + id))
-            {
-                doc.LoadHtml(File.ReadAllText("Cache/Tournaments/" + id));
-                return doc;
-            }
-
-            var tournamentUrl = "https://ratings.ruchess.ru/" + url;
-
-            doc = new HtmlWeb().Load(tournamentUrl);
-            File.WriteAllText("Cache/Tournaments/" + id, doc.Text);
-            return doc;
-        }
 
         public void GetTournament(string url, string currentUserId, List<Rival> rivals)
         {
-            var userInfo = GetTournament(url);
+            var tournamentId = url.Replace("/tournaments/", "");
+            var userInfo = new Cache().GetTournament(tournamentId);
             var users = userInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]//tr");
             // Строка с текущими пользователями
             var currentUser = users.First(n =>
@@ -119,7 +71,12 @@ namespace ChessStat.Classes
             var tournamentInfo = userInfo.DocumentNode.SelectNodes("//div[contains(@class, 'panel-default')]//li");
             var tournamentDate = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText();
             var tournamentName = userInfo.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText();
+            var tournamentType = tournamentInfo
+                .FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Метод жеребьёвки:"))?
+                .GetDirectInnerText();
 
+            if (tournamentType!= null && !tournamentType.Contains("Швейцарская")) return;
+            
             var tournamentStats = _userInfo.TournamentStats.FirstOrDefault(t => t.Count() == currentUser.ChildNodes.Count - 9);
             if (tournamentStats == null)
             {
