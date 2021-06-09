@@ -5,72 +5,133 @@
     <title></title>
 </head>
 <body>
-<script src="scripts/jquery-3.6.0.min.js"></script>
-<style>
-    table {
-        border-collapse: collapse;
-    }
-
-    td {
-        padding: 6px;
-        border: 1px solid black;
-    }
-</style>
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css">
+    <script src="scripts/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
 <script>
     $(document).ready(() => {
-        $("#getData").on("click", () => {
-            $.ajax({
-                url: 'stat',
-                data: "chessId="+$("#chess-id").val(),
-                success: function (result) {
-                    showResult(result);
-                }
-            });
+        $('.ui.accordion').accordion();
+            $("#getData").on("click", () => {
+                $.ajax({
+                    url: 'stat',
+                    data: "chessId=" + $("#chess-id").val(),
+                    success: function (result) {
+                        $("#all-stat").show("fast");
+                        showResult(result);
+                    }
+                });
+            })
         })
-    })
 
-    function showResult(result) {
-        $("#name").html(result.name);
-        var table = $("#rivals");
-        result.rivals.forEach(r => {
-            var row = $("<tr/>");
-            row.append(addCell(r.id));
-            row.append(addCell(r.name));
-            row.append(addCell(r.games));
-            row.append(addCell(r.wins));
-            row.append(addCell(r.draws));
-            row.append(addCell(r.loses));
-            table.append(row);
-        });
-    }
+        function showResult(result) {
+            $("#name").html(result.name);
+            var table = $("#rivals");
+            var index = 1;
+            result.rivals.forEach(rival => {
+                var row = $("<tr/>");
+                row.append(addCell('#' + index++));
+                row.append(addCell('<a href="https://ratings.ruchess.ru/people/' + rival.id + '" target="_blank">' + rival.name + '</a>'));
+                row.append(addCell(rival.games));
+                row.append(addCell(rival.wins));
+                row.append(addCell(rival.draws));
+                row.append(addCell(rival.loses));
+                table.append(row);
+            });
+            $("#games").text(result.games);
+            $("#wins").text(result.wins);
+            $("#draws").text(result.draws);
+            $("#loses").text(result.loses);
+            // Статистика
+            $('.count').each(function () {
+                $(this).prop('Counter', 0).animate({
+                    Counter: $(this).text()
+                },
+                    {
+                        duration: 2000,
+                        easing: 'swing',
+                        step: function (now) {
+                            this.innerHTML = Math.ceil(now).toString().replace(/(\d)(?=(\d{3})+(\D|$))/g, '$1&thinsp;');
+                        }
+                    });
+            });
+        }
 
-    function addCell(data) {
-        var cell = $("<td/>");
-        cell.html(data);
-        return cell;
+        function addCell(data) {
+            var cell = $("<td/>");
+            cell.html(data);
+            return cell;
     }
-</script>
-<h1>Статистика РШФ</h1><br/>
-<input type="text" id="chess-id"/>
-<input type="button" id="getData" value="Получить"/>
-<br/>
-<br />
-<br />
-<div>
-    <span id="name"></span>
-    <table>
-        <thead>
-            <tr>
-                <th>Id</th>
-                <th>Имя</th>
-                <th>Всего игр</th>
-                <th>Побед</th>
-                <th>Ничьих</th>
-                <th>Поражений</th>
-            </tr>
-        </thead>
-        <tbody id="rivals"></tbody>
-    </table>
+    </script>
+<div class="ui container">
+    <div class="ui clearing segment">
+        <h1 class="ui left floated header" style="margin-bottom: 0">Статистика РШФ</h1>
+        <h3 id="name" class="ui right floated header"></h3>
+    </div>
+    <div class="ui segment">
+        <div class="ui form">
+            <div class="fields" style="margin-bottom: 0">
+                <div class="field">
+                    <input type="text" id="chess-id" />
+                </div>
+                <div class="field">
+                    <input class="ui button" type="button" id="getData" value="Получить" />
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="all-stat" style="display: none">
+        <div class="ui center aligned segment">
+            <div class="ui four column center aligned divided relaxed stackable grid container">
+                <div class="column">
+                    <div class="ui statistic">
+                        <div id="games" class="value count">0</div>
+                        <div class="label">Игр</div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui statistic">
+                        <div id="wins" class="value count">0</div>
+                        <div class="label">Побед</div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui statistic">
+                        <div id="draws" class="value count">0</div>
+                        <div class="label">Ничьих</div>
+                    </div>
+                </div>
+                <div class="column">
+                    <div class="ui statistic">
+                        <div id="loses" class="value count">0</div>
+                        <div class="label">Поражений</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ui segment">
+            <div class="ui fluid accordion">
+                <div class="title">
+                    <i class="dropdown icon"></i>
+                    Топ-20 частых соперников
+                </div>
+                <div class="content">
+                    <table class="ui selectable table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Имя</th>
+                                <th>Игр</th>
+                                <th>Побед</th>
+                                <th>Ничьих</th>
+                                <th>Поражений</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rivals"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 </html>

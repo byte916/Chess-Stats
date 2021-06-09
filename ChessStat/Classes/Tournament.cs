@@ -14,16 +14,14 @@ namespace ChessStat.Classes
         
         public UserInfo Get(string id)
         {
-            var userInfoUrl = "https://ratings.ruchess.ru/people/" + id;
-            var userInfo = new HtmlWeb().Load(userInfoUrl);
+            var userInfo = GetUser(id);
             var result = new UserInfo()
             {
                 Rivals = new List<Rival>()
             };
             result.Name = userInfo.DocumentNode.SelectSingleNode("//div[contains(@class, 'page-header')]/h1").GetDirectInnerText();
 
-            var tournamentsUrl = userInfoUrl + "/tournaments";
-            var tournamentsInfo = new HtmlWeb().Load(tournamentsUrl);
+            var tournamentsInfo = GetTournamentInfo(id);
             var tournaments = tournamentsInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-hover')]//a").Select(n=>n.GetAttributeValue("href", "")).ToList();
             
             foreach (var tournament in tournaments)
@@ -31,36 +29,68 @@ namespace ChessStat.Classes
                 GetTournament(tournament, id, result.Rivals);
             }
 
-            result.Rivals = result.Rivals.OrderByDescending(r => r.Games).ToList();
+            result.Games = result.Rivals.Sum(r => r.Games);
+            result.Wins = result.Rivals.Sum(r => r.Wins);
+            result.Draws = result.Rivals.Sum(r => r.Draws);
+            result.Loses = result.Rivals.Sum(r => r.Loses);
+            result.Rivals = result.Rivals.OrderByDescending(r => r.Games).Take(20).ToList();
+
             return result;
         }
 
-        public HtmlDocument GetTournamentCache(string url)
+        public HtmlDocument GetTournamentInfo(string id)
         {
-            var id = url.Replace("/tournaments/", "");
-
-            if (!Directory.Exists("Cache"))
+            var doc = new HtmlDocument();
+            if (File.Exists("Cache/TournamentInfo/" + id))
             {
-                Directory.CreateDirectory("Cache");
+                doc.LoadHtml(File.ReadAllText("Cache/TournamentInfo/" + id));
+                return doc;
             }
 
+            var tournamentsUrl = "https://ratings.ruchess.ru/people/" + id + "/tournaments";
+            doc = new HtmlWeb().Load(tournamentsUrl);
+
+            File.WriteAllText("Cache/TournamentInfo/" + id, doc.Text);
+            return doc;
+        }
+
+        public HtmlDocument GetUser(string id)
+        {
             var doc = new HtmlDocument();
-            if (File.Exists("Cache/" + id))
+            if (File.Exists("Cache/Users/" + id))
             {
-                doc.LoadHtml(File.ReadAllText("Cache/" + id));
+                doc.LoadHtml(File.ReadAllText("Cache/Users/" + id));
+                return doc;
+            }
+            
+            var userInfoUrl = "https://ratings.ruchess.ru/people/" + id;
+            doc = new HtmlWeb().Load(userInfoUrl);
+
+            File.WriteAllText("Cache/Users/" + id, doc.Text);
+            return doc;
+        }
+
+        public HtmlDocument GetTournament(string url)
+        {
+            var id = url.Replace("/tournaments/", "");
+            
+            var doc = new HtmlDocument();
+            if (File.Exists("Cache/Tournaments/" + id))
+            {
+                doc.LoadHtml(File.ReadAllText("Cache/Tournaments/" + id));
                 return doc;
             }
 
             var tournamentUrl = "https://ratings.ruchess.ru/" + url;
 
             doc = new HtmlWeb().Load(tournamentUrl);
-            File.WriteAllText("Cache/" + id, doc.Text);
+            File.WriteAllText("Cache/Tournaments/" + id, doc.Text);
             return doc;
         }
 
         public void GetTournament(string url, string currentUserId, List<Rival> rivals)
         {
-            var userInfo = GetTournamentCache(url);
+            var userInfo = GetTournament(url);
             var users = userInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]//tr");
             // Строка с текущими пользователями
             var currentUser = users.First(n =>

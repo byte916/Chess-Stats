@@ -10,6 +10,10 @@ namespace ChessStat.Models
         /// <summary> Имя шахматиста </summary>
         public string Name { get; set; }
         public  List<Rival> Rivals { get; set; }
+        public int Games { get; set; }
+        public int Wins { get; set; }
+        public int Draws { get; set; }
+        public int Loses { get; set; }
     }
 
     public class Rival
