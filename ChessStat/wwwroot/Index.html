@@ -25,7 +25,8 @@
 
         function showResult(result) {
             $("#name").html(result.name);
-            var table = $("#rivals");
+            // Заполняем топ-частых соперников
+            var rivals = $("#rivals");
             var index = 1;
             result.rivals.forEach(rival => {
                 var row = $("<tr/>");
@@ -35,13 +36,13 @@
                 row.append(addCell(rival.wins));
                 row.append(addCell(rival.draws));
                 row.append(addCell(rival.loses));
-                table.append(row);
+                rivals.append(row);
             });
+            // Статистика
             $("#games").text(result.games);
             $("#wins").text(result.wins);
             $("#draws").text(result.draws);
             $("#loses").text(result.loses);
-            // Статистика
             $('.count').each(function () {
                 $(this).prop('Counter', 0).animate({
                     Counter: $(this).text()
@@ -53,6 +54,19 @@
                             this.innerHTML = Math.ceil(now).toString().replace(/(\d)(?=(\d{3})+(\D|$))/g, '$1&thinsp;');
                         }
                     });
+            });
+            // Заполняем топ-сложных соперников
+            var hardestGames = $("#hardestGames")
+            index = 1;
+            result.hardestRivals.forEach(rival => {
+                var row = $("<tr/>");
+                row.append(addCell('#' + index++));
+                row.append(addCell('<a href="https://ratings.ruchess.ru/people/' + rival.id + '" target="_blank">' + rival.name + '</a>'));
+                row.append(addCell(rival.elo));
+                row.append(addCell(rival.date));
+                row.append(addCell(rival.tournament));
+                row.append(addCell(rival.color));
+                hardestGames.append(row);
             });
         }
 
@@ -118,7 +132,7 @@
                     <table class="ui selectable table">
                         <thead>
                             <tr>
-                                <th>Id</th>
+                                <th>#</th>
                                 <th>Имя</th>
                                 <th>Игр</th>
                                 <th>Побед</th>
@@ -127,6 +141,25 @@
                             </tr>
                         </thead>
                         <tbody id="rivals"></tbody>
+                    </table>
+                </div>
+                <div class="title">
+                    <i class="dropdown icon"></i>
+                    Топ-20 самых рейтинговых соперников, которые были обыграны
+                </div>
+                <div class="content">
+                    <table class="ui selectable table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Соперник</th>
+                                <th>Рейтинг</th>
+                                <th>Дата</th>
+                                <th>Турнир</th>
+                                <th>Цвет</th>
+                            </tr>
+                        </thead>
+                        <tbody id="hardestGames"></tbody>
                     </table>
                 </div>
             </div>

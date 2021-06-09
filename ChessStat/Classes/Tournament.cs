@@ -11,31 +11,33 @@ namespace ChessStat.Classes
 {
     public class Tournament
     {
-        
+        private UserInfo _userInfo;
         public UserInfo Get(string id)
         {
-            var userInfo = GetUser(id);
-            var result = new UserInfo()
+            _userInfo = new UserInfo()
             {
-                Rivals = new List<Rival>()
+                Rivals = new List<Rival>(),
+                HardestRivals = new List<Game>()
             };
-            result.Name = userInfo.DocumentNode.SelectSingleNode("//div[contains(@class, 'page-header')]/h1").GetDirectInnerText();
+            if (string.IsNullOrWhiteSpace(id)) return _userInfo;
+            var userInfo = GetUser(id);
+            _userInfo.Name = userInfo.DocumentNode.SelectSingleNode("//div[contains(@class, 'page-header')]/h1").GetDirectInnerText();
 
             var tournamentsInfo = GetTournamentInfo(id);
             var tournaments = tournamentsInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-hover')]//a").Select(n=>n.GetAttributeValue("href", "")).ToList();
             
             foreach (var tournament in tournaments)
             {
-                GetTournament(tournament, id, result.Rivals);
+                GetTournament(tournament, id, _userInfo.Rivals);
             }
 
-            result.Games = result.Rivals.Sum(r => r.Games);
-            result.Wins = result.Rivals.Sum(r => r.Wins);
-            result.Draws = result.Rivals.Sum(r => r.Draws);
-            result.Loses = result.Rivals.Sum(r => r.Loses);
-            result.Rivals = result.Rivals.OrderByDescending(r => r.Games).Take(20).ToList();
-
-            return result;
+            _userInfo.Games = _userInfo.Rivals.Sum(r => r.Games);
+            _userInfo.Wins = _userInfo.Rivals.Sum(r => r.Wins);
+            _userInfo.Draws = _userInfo.Rivals.Sum(r => r.Draws);
+            _userInfo.Loses = _userInfo.Rivals.Sum(r => r.Loses);
+            _userInfo.Rivals = _userInfo.Rivals.OrderByDescending(r => r.Games).Take(20).ToList();
+            _userInfo.HardestRivals = _userInfo.HardestRivals.OrderByDescending(r => r.Elo).Take(20).ToList();
+            return _userInfo;
         }
 
         public HtmlDocument GetTournamentInfo(string id)
@@ -95,12 +97,16 @@ namespace ChessStat.Classes
             // Строка с текущими пользователями
             var currentUser = users.First(n =>
                 n.ChildNodes[2].FirstChild.GetAttributeValue("href", "") == "/people/" + currentUserId);
-            
+
+            var tournamentInfo = userInfo.DocumentNode.SelectNodes("//div[contains(@class, 'panel-default')]//li");
+            var tournamentDate = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText();
+            var tournamentName = userInfo.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText();
+
             for (var i = 4; i < currentUser.ChildNodes.Count-6; i++)
             {
-                var innerText = currentUser.ChildNodes[i].GetDirectInnerText();
-                if (innerText == "+") continue;
-                var rivalIndex = int.Parse(innerText.Substring(0, innerText.IndexOfAny(new[] {'б', 'ч'})));
+                var tourResult = currentUser.ChildNodes[i].GetDirectInnerText();
+                if (tourResult == "+") continue;
+                var rivalIndex = int.Parse(tourResult.Substring(0, tourResult.IndexOfAny(new[] {'б', 'ч'})));
                 var rivalRow = users[rivalIndex];
                 var rivalId = rivalRow.ChildNodes[2].FirstChild.GetAttributeValue("href", "").Replace("/people/", "");
                 var rival = rivals.FirstOrDefault(r => r.Id == rivalId);
@@ -119,8 +125,22 @@ namespace ChessStat.Classes
                     rivals.Add(rival);
                 }
 
-                if (innerText.EndsWith('1')) rival.Wins++;
-                else if (innerText.EndsWith('0')) rival.Loses++;
+                if (tourResult.EndsWith('1'))
+                {
+                    var rivalRate = int.Parse(rivalRow.ChildNodes[3].InnerText);
+                    
+                    _userInfo.HardestRivals.Add(new Game()
+                    {
+                        Id = rivalId,
+                        Name = rival.Name,
+                        Date = tournamentDate,
+                        Tournament = tournamentName,
+                        Elo = rivalRate,
+                        Color = tourResult.Contains('б') ? "Белые" : "Черные"
+                    });
+                    rival.Wins++;
+                }
+                else if (tourResult.EndsWith('0')) rival.Loses++;
                 else rival.Draws++;
                 rival.Games++;
             }
