@@ -19,7 +19,8 @@ namespace ChessStat.Classes
             {
                 Rivals = new List<Rival>(),
                 HardestRivals = new List<Game>(),
-                TournamentStats = new List<TourStat[]>()
+                TournamentStats = new List<TourStat[]>(),
+                InconvenientOpponent = new List<InconvenientOpponent>()
             };
             if (string.IsNullOrWhiteSpace(id)) return _userInfo;
             var userInfo = new Cache().GetUser(id);
@@ -31,6 +32,38 @@ namespace ChessStat.Classes
             _userInfo.Wins = _userInfo.Rivals.Sum(r => r.Wins);
             _userInfo.Draws = _userInfo.Rivals.Sum(r => r.Draws);
             _userInfo.Loses = _userInfo.Rivals.Sum(r => r.Loses);
+            
+            foreach (var userInfoRival in _userInfo.Rivals)
+            {
+                if (userInfoRival.Games <= 2) continue;
+                _userInfo.InconvenientOpponent.Add(new InconvenientOpponent()
+                {
+                    Name = userInfoRival.Name,
+                    Draws = userInfoRival.Draws,
+                    Games = userInfoRival.Games,
+                    Loses = userInfoRival.Loses,
+                    Points = userInfoRival.Wins + Convert.ToDecimal(userInfoRival.Draws)/2,
+                    Wins = userInfoRival.Wins
+                });
+            }
+
+
+            var maxGames = Convert.ToDecimal(_userInfo.Rivals.Max(r => r.Games));
+            _userInfo.InconvenientOpponent = _userInfo
+                .InconvenientOpponent
+                .OrderByDescending(o =>
+                {
+                    var games = Convert.ToDecimal(o.Games);
+                    var gamesToTotal = games / maxGames;
+                    var loseToGames = o.Loses / games;
+                    var pointToGames = 1 - o.Points / games;
+                    var loseAndDrawToGames = (o.Draws + o.Loses) / games;
+                    var result = gamesToTotal * loseToGames * pointToGames * loseAndDrawToGames;
+                    return result;
+                })
+                .Take(20)
+                .ToList();
+
             _userInfo.Rivals = _userInfo.Rivals.OrderByDescending(r => r.Games).Take(20).ToList();
             _userInfo.HardestRivals = _userInfo.HardestRivals.OrderByDescending(r => r.Elo).Take(20).ToList();
 
@@ -142,6 +175,7 @@ namespace ChessStat.Classes
                         Elo = rivalRate,
                         Color = tourResult.Contains('б') ? "Белые" : "Черные"
                     });
+                    
                     rival.Wins++;
                 }
                 else if (tourResult.EndsWith('0'))

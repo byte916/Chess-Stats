@@ -14,6 +14,7 @@ namespace ChessStat.Models
         /// <summary> Список самых рейтинговых соперников которые были обыграны </summary>
         public List<Game> HardestRivals { get; set; }
         public List<TourStat[]> TournamentStats { get; set; }
+        public List<InconvenientOpponent> InconvenientOpponent { get; set; }
         public int Games { get; set; }
         public int Wins { get; set; }
         public int Draws { get; set; }
@@ -38,6 +39,17 @@ namespace ChessStat.Models
         public int Wins { get; set; }
         public int Draws { get; set; }
         public int Loses { get; set; }
+    }
+
+    public class InconvenientOpponent
+    {
+        public string Name { get; set; }
+        /// <summary> Процент набранных очков </summary>
+        public decimal Points { get; set; }
+        public int Wins { get; set; }
+        public int Draws { get; set; }
+        public int Loses { get; set; }
+        public int Games { get; set; }
     }
 
     /// <summary> Описание игры </summary>

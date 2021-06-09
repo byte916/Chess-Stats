@@ -123,6 +123,21 @@
 
                 toursStats.append(table);
             })
+            // Неудобные соперники
+            var inconvenientOpponent = $("#inconvenientOpponent");
+            inconvenientOpponent.html('');
+            index = 1;
+            result.inconvenientOpponent.forEach(op => {
+                var row = $("<tr>");
+                row.append(addCell(index++));
+                row.append(addCell(op.name));
+                row.append(addCell(Math.ceil(100*op.points/op.games)));
+                row.append(addCell(op.wins));
+                row.append(addCell(op.draws));
+                row.append(addCell(op.loses));
+                row.append(addCell(op.games));
+                inconvenientOpponent.append(row);                
+            })
         }
 
         function addCell(data) {
@@ -218,10 +233,29 @@
                 </div>
                 <div class="title">
                     <i class="dropdown icon"></i>
+                    Топ-20 самых неудобных соперников
+                </div>
+                <div class="content">
+                    <table class="ui selectable table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Соперник</th>
+                                <th>% очков</th>
+                                <th>Побед</th>
+                                <th>Ничьих</th>
+                                <th>Поражений</th>
+                                <th>Игр</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inconvenientOpponent"></tbody>
+                    </table>
+                </div>
+                <div class="title">
+                    <i class="dropdown icon"></i>
                     Сила игры по ходу турнира
                 </div>
-                <div class="content" id="toursStats">
-                </div>
+                <div class="content" id="toursStats"></div>
             </div>
         </div>
     </div>
