@@ -13,10 +13,21 @@ namespace ChessStat.Models
 
         /// <summary> Список самых рейтинговых соперников которые были обыграны </summary>
         public List<Game> HardestRivals { get; set; }
+        public List<TourStat[]> TournamentStats { get; set; }
         public int Games { get; set; }
         public int Wins { get; set; }
         public int Draws { get; set; }
         public int Loses { get; set; }
+    }
+
+    public class TourStat
+    {
+        public decimal AvgElo { get; set; }
+        public decimal PointPercent { get; set; }
+        public int Wins { get; set; }
+        public int Draws { get; set; }
+        public int Loses { get; set; }
+        public int Games { get; set; }
     }
 
     public class Rival

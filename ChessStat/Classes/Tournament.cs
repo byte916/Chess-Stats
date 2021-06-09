@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -17,7 +18,8 @@ namespace ChessStat.Classes
             _userInfo = new UserInfo()
             {
                 Rivals = new List<Rival>(),
-                HardestRivals = new List<Game>()
+                HardestRivals = new List<Game>(),
+                TournamentStats = new List<TourStat[]>()
             };
             if (string.IsNullOrWhiteSpace(id)) return _userInfo;
             var userInfo = GetUser(id);
@@ -37,6 +39,22 @@ namespace ChessStat.Classes
             _userInfo.Loses = _userInfo.Rivals.Sum(r => r.Loses);
             _userInfo.Rivals = _userInfo.Rivals.OrderByDescending(r => r.Games).Take(20).ToList();
             _userInfo.HardestRivals = _userInfo.HardestRivals.OrderByDescending(r => r.Elo).Take(20).ToList();
+
+            _userInfo.TournamentStats = _userInfo.TournamentStats.OrderByDescending(t => t.Length).ToList();
+            foreach (var userInfoTournamentStat in _userInfo.TournamentStats)
+            {
+                foreach (var tourStat in userInfoTournamentStat)
+                {
+                    if (tourStat.Games == 0)
+                    {
+                        tourStat.AvgElo = 0;
+                        tourStat.PointPercent=0;
+                        continue;
+                    }
+                    tourStat.AvgElo = Math.Ceiling(tourStat.AvgElo / tourStat.Games);
+                    tourStat.PointPercent = Math.Ceiling((tourStat.Wins + Convert.ToDecimal(tourStat.Draws) / 2) / tourStat.Games * 100);
+                }
+            }
             return _userInfo;
         }
 
@@ -102,10 +120,26 @@ namespace ChessStat.Classes
             var tournamentDate = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText();
             var tournamentName = userInfo.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText();
 
-            for (var i = 4; i < currentUser.ChildNodes.Count-6; i++)
+            var tournamentStats = _userInfo.TournamentStats.FirstOrDefault(t => t.Count() == currentUser.ChildNodes.Count - 9);
+            if (tournamentStats == null)
             {
+                tournamentStats = new TourStat[currentUser.ChildNodes.Count - 9];
+                _userInfo.TournamentStats.Add(tournamentStats);
+            }
+            for (var i = 4; i < currentUser.ChildNodes.Count-5; i++)
+            {
+                var tourIndex = i - 4;
+                var tourStat = tournamentStats[tourIndex];
+                if (tourStat == null)
+                {
+                    tourStat = new TourStat();
+                    tournamentStats[tourIndex] = tourStat;
+                }
                 var tourResult = currentUser.ChildNodes[i].GetDirectInnerText();
-                if (tourResult == "+") continue;
+                if (tourResult == "+")
+                {
+                    continue;
+                }
                 var rivalIndex = int.Parse(tourResult.Substring(0, tourResult.IndexOfAny(new[] {'б', 'ч'})));
                 var rivalRow = users[rivalIndex];
                 var rivalId = rivalRow.ChildNodes[2].FirstChild.GetAttributeValue("href", "").Replace("/people/", "");
@@ -125,10 +159,12 @@ namespace ChessStat.Classes
                     rivals.Add(rival);
                 }
 
+                var rivalRate = int.Parse(rivalRow.ChildNodes[3].InnerText);
+                tourStat.Games++;
+                tourStat.AvgElo += rivalRate;
                 if (tourResult.EndsWith('1'))
                 {
-                    var rivalRate = int.Parse(rivalRow.ChildNodes[3].InnerText);
-                    
+                    tourStat.Wins++;
                     _userInfo.HardestRivals.Add(new Game()
                     {
                         Id = rivalId,
@@ -140,8 +176,16 @@ namespace ChessStat.Classes
                     });
                     rival.Wins++;
                 }
-                else if (tourResult.EndsWith('0')) rival.Loses++;
-                else rival.Draws++;
+                else if (tourResult.EndsWith('0'))
+                {
+                    tourStat.Loses++; 
+                    rival.Loses++;
+                }
+                else
+                {
+                    tourStat.Draws++;
+                    rival.Draws++;
+                }
                 rival.Games++;
             }
         }
