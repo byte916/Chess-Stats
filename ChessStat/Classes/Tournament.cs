@@ -58,11 +58,17 @@ namespace ChessStat.Classes
                     {
                         Id = rivalId,
                         Name = rivalName,
-                        Games = 0
+                        Games = 0,
+                        Wins = 0,
+                        Draws = 0,
+                        Loses = 0
                     };
                     rivals.Add(rival);
                 }
 
+                if (innerText.EndsWith('1')) rival.Wins++;
+                else if (innerText.EndsWith('0')) rival.Loses++;
+                else rival.Draws++;
                 rival.Games++;
             }
         }

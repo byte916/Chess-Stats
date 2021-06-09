@@ -17,5 +17,8 @@ namespace ChessStat.Models
         public string Id { get; set; }
         public string Name { get; set; }
         public int Games { get; set; }
+        public int Wins { get; set; }
+        public int Draws { get; set; }
+        public int Loses { get; set; }
     }
 }

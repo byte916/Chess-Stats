@@ -37,6 +37,9 @@
             row.append(addCell(r.id));
             row.append(addCell(r.name));
             row.append(addCell(r.games));
+            row.append(addCell(r.wins));
+            row.append(addCell(r.draws));
+            row.append(addCell(r.loses));
             table.append(row);
         });
     }
@@ -57,11 +60,14 @@
     <span id="name"></span>
     <table>
         <thead>
-        <tr>
-            <th>Id</th>
-            <th>Имя</th>
-            <th>Всего игр</th>
-        </tr>
+            <tr>
+                <th>Id</th>
+                <th>Имя</th>
+                <th>Всего игр</th>
+                <th>Побед</th>
+                <th>Ничьих</th>
+                <th>Поражений</th>
+            </tr>
         </thead>
         <tbody id="rivals"></tbody>
     </table>
