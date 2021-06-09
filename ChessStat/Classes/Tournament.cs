@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -34,10 +35,32 @@ namespace ChessStat.Classes
             return result;
         }
 
+        public HtmlDocument GetTournamentCache(string url)
+        {
+            var id = url.Replace("/tournaments/", "");
+
+            if (!Directory.Exists("Cache"))
+            {
+                Directory.CreateDirectory("Cache");
+            }
+
+            var doc = new HtmlDocument();
+            if (File.Exists("Cache/" + id))
+            {
+                doc.LoadHtml(File.ReadAllText("Cache/" + id));
+                return doc;
+            }
+
+            var tournamentUrl = "https://ratings.ruchess.ru/" + url;
+
+            doc = new HtmlWeb().Load(tournamentUrl);
+            File.WriteAllText("Cache/" + id, doc.Text);
+            return doc;
+        }
+
         public void GetTournament(string url, string currentUserId, List<Rival> rivals)
         {
-            var tournamentUrl = "https://ratings.ruchess.ru/" + url;
-            var userInfo = new HtmlWeb().Load(tournamentUrl);
+            var userInfo = GetTournamentCache(url);
             var users = userInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]//tr");
             // Строка с текущими пользователями
             var currentUser = users.First(n =>
