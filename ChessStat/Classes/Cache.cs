@@ -23,24 +23,26 @@ namespace ChessStat.Classes
             if (!Directory.Exists(TournamentInfoFolder)) Directory.CreateDirectory(TournamentInfoFolder);
         }
         
-        public HtmlDocument GetTournamentInfo(string id)
+        public HtmlDocument GetTournamentInfo(string id, int page)
         {
             var doc = new HtmlDocument();
-            if (File.Exists(TournamentInfoFolder + id) && File.GetCreationTime(TournamentInfoFolder + id).Date != DateTime.Now.Date)
+            var fileName = TournamentInfoFolder + id + "_" + page;
+            if (File.Exists(fileName) && File.GetCreationTime(fileName).Date != DateTime.Now.Date)
             {
-                    File.Delete(TournamentInfoFolder + id);
+                    File.Delete(fileName);
             }
-            if (File.Exists(TournamentInfoFolder + id))
+            if (File.Exists(fileName))
             {
-                doc.LoadHtml(File.ReadAllText(TournamentInfoFolder + id));
+                doc.LoadHtml(File.ReadAllText(fileName));
                 return doc;
             }
 
             var tournamentsUrl = "https://ratings.ruchess.ru/people/" + id + "/tournaments";
+            if (page > 1) tournamentsUrl += "?page=" + page;
             doc = new HtmlWeb().Load(tournamentsUrl);
 
-            File.WriteAllText(TournamentInfoFolder + id, doc.Text);
-            File.SetCreationTime(TournamentInfoFolder + id, DateTime.Now);
+            File.WriteAllText(fileName, doc.Text);
+            File.SetCreationTime(fileName, DateTime.Now);
             return doc;
         }
 

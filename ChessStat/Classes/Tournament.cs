@@ -24,14 +24,8 @@ namespace ChessStat.Classes
             if (string.IsNullOrWhiteSpace(id)) return _userInfo;
             var userInfo = new Cache().GetUser(id);
             _userInfo.Name = userInfo.DocumentNode.SelectSingleNode("//div[contains(@class, 'page-header')]/h1").GetDirectInnerText();
-
-            var tournamentsInfo = new Cache().GetTournamentInfo(id);
-            var tournaments = tournamentsInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-hover')]//a").Select(n=>n.GetAttributeValue("href", "")).ToList();
             
-            foreach (var tournament in tournaments)
-            {
-                GetTournament(tournament, id, _userInfo.Rivals);
-            }
+            GetTournamentsFromPage(id, 1);
 
             _userInfo.Games = _userInfo.Rivals.Sum(r => r.Games);
             _userInfo.Wins = _userInfo.Rivals.Sum(r => r.Wins);
@@ -58,6 +52,23 @@ namespace ChessStat.Classes
             return _userInfo;
         }
 
+        private void GetTournamentsFromPage(string userId, int page)
+        {
+            var tournamentsInfo = new Cache().GetTournamentInfo(userId, page);
+            var tournaments = tournamentsInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-hover')]//a").Select(n => n.GetAttributeValue("href", "")).ToList();
+
+            foreach (var tournament in tournaments)
+            {
+                GetTournament(tournament, userId, _userInfo.Rivals);
+            }
+
+            var nextPage =
+                tournamentsInfo.DocumentNode.SelectSingleNode(
+                    "//ul[contains(@class, 'pagination')]//li[contains(@class,'next_page')]");
+            if (nextPage == null) return;
+            if (nextPage.HasClass("disabled")) return;
+            GetTournamentsFromPage(userId, page + 1);
+        }
 
         public void GetTournament(string url, string currentUserId, List<Rival> rivals)
         {
@@ -93,7 +104,7 @@ namespace ChessStat.Classes
                     tournamentStats[tourIndex] = tourStat;
                 }
                 var tourResult = currentUser.ChildNodes[i].GetDirectInnerText();
-                if (tourResult == "+")
+                if (tourResult == "+" || tourResult == "0")
                 {
                     continue;
                 }
