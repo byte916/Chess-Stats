@@ -15,6 +15,7 @@ namespace ChessStat.Classes
         private UserInfo _userInfo;
         public UserInfo Get(string id)
         {
+            id = id.Trim();
             _userInfo = new UserInfo()
             {
                 Rivals = new List<Rival>(),
@@ -48,7 +49,7 @@ namespace ChessStat.Classes
             }
 
 
-            var maxGames = Convert.ToDecimal(_userInfo.Rivals.Max(r => r.Games));
+            var maxGames = Convert.ToDecimal(_userInfo.Rivals.Any() ? _userInfo.Rivals.Max(r => r.Games): 1);
             _userInfo.InconvenientOpponent = _userInfo
                 .InconvenientOpponent
                 .OrderByDescending(o =>
@@ -137,12 +138,12 @@ namespace ChessStat.Classes
                     tournamentStats[tourIndex] = tourStat;
                 }
                 var tourResult = currentUser.ChildNodes[i].GetDirectInnerText();
-                if (tourResult == "+" || tourResult == "0")
+                if (tourResult == "+" || tourResult == "1" || tourResult == "0" || tourResult == "½")
                 {
                     continue;
                 }
-                var rivalIndex = int.Parse(tourResult.Substring(0, tourResult.IndexOfAny(new[] {'б', 'ч'})));
-                var rivalRow = users[rivalIndex];
+                var rivalIndex = tourResult.Substring(0, tourResult.IndexOfAny(new[] {'б', 'ч'}));
+                var rivalRow = users.First(u=>u.ChildNodes[0].GetDirectInnerText()== rivalIndex);
                 var rivalId = rivalRow.ChildNodes[2].FirstChild.GetAttributeValue("href", "").Replace("/people/", "");
                 var rival = rivals.FirstOrDefault(r => r.Id == rivalId);
                 if (rival == null)
