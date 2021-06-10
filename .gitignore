@@ -2,3 +2,5 @@ ChessStat/bin/
 ChessStat/obj/
 .vs/
 ChessStat/Cache/
+ChessStat/Properties/PublishProfiles/
+*.user

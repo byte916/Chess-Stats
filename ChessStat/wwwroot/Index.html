@@ -2,7 +2,25 @@
 <html>
 <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title></title>
+    <!-- Yandex.Metrika counter -->
+    <script type="text/javascript">
+        (function (m, e, t, r, i, k, a) {
+            m[i] = m[i] || function () { (m[i].a = m[i].a || []).push(arguments) };
+            m[i].l = 1 * new Date(); k = e.createElement(t), a = e.getElementsByTagName(t)[0], k.async = 1, k.src = r, a.parentNode.insertBefore(k, a)
+        })
+            (window, document, "script", "https://mc.yandex.ru/metrika/tag.js", "ym");
+
+        ym(80552305, "init", {
+            clickmap: true,
+            trackLinks: true,
+            accurateTrackBounce: true,
+            webvisor: true
+        });
+    </script>
+    <noscript><div><img src="https://mc.yandex.ru/watch/80552305" style="position:absolute; left:-9999px;" alt="" /></div></noscript>
+    <!-- /Yandex.Metrika counter -->
 </head>
 <body>
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css">
@@ -12,12 +30,19 @@
         $(document).ready(() => {
             $('.ui.accordion').accordion();
             $("#getData").on("click", () => {
+                $("#search").dimmer('show');
                 $.ajax({
                     url: 'stat',
                     data: "chessId=" + $("#chess-id").val(),
                     success: function (result) {
+                        $("#search").dimmer('hide');
                         $("#all-stat").show("fast");
+                        $("#data").show("fast");
                         showResult(result);
+                    },
+                    error: function () {
+                        $("#search").dimmer('hide');
+                        alert("Произошла ошибка");
                     }
                 });
             })
@@ -75,7 +100,7 @@
             toursStats.html("");
             result.tournamentStats.forEach(tours => {
                 toursStats.append("<strong>Турнир из " + tours.length + " туров</strong>")
-                var table = $('<table class="ui selectable right aligned table">');
+                var table = $('<table class="ui unstackable selectable right aligned table">');
                 var thead = $('<thead>');
                 var tbody = $('<tbody>');
                 var tourRow = $('<tr>');
@@ -151,11 +176,14 @@
             <h1 class="ui left floated header" style="margin-bottom: 0">Статистика РШФ</h1>
             <h3 id="name" class="ui right floated header"></h3>
         </div>
-        <div class="ui segment">
+        <div id="search" class="ui segment">
+            <div class="ui dimmer">
+                <div class="ui loader"></div>
+            </div>
             <div class="ui form">
                 <div class="fields" style="margin-bottom: 0">
                     <div class="field">
-                        <input type="text" id="chess-id" />
+                        <input type="text" id="chess-id" placeholder="ID РШФ" />
                     </div>
                     <div class="field">
                         <input class="ui button" type="button" id="getData" value="Получить" />
@@ -191,14 +219,14 @@
                 </div>
             </div>
         </div>
-        <div class="ui segment">
+        <div id="data" style="display: none" class="ui segment">
             <div class="ui fluid accordion">
                 <div class="title">
                     <i class="dropdown icon"></i>
                     Топ-20 частых соперников
                 </div>
                 <div class="content">
-                    <table class="ui selectable table">
+                    <table class="ui unstackable selectable table">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -217,7 +245,7 @@
                     Топ-20 самых рейтинговых соперников, которые были обыграны
                 </div>
                 <div class="content">
-                    <table class="ui selectable table">
+                    <table class="ui unstackable selectable table">
                         <thead>
                             <tr>
                                 <th>#</th>
@@ -236,7 +264,7 @@
                     Топ-20 самых неудобных соперников
                 </div>
                 <div class="content">
-                    <table class="ui selectable table">
+                    <table class="ui unstackable selectable table">
                         <thead>
                             <tr>
                                 <th>#</th>
