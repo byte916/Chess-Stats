@@ -108,19 +108,20 @@ namespace ChessStat.Classes
         {
             var tournamentId = url.Replace("/tournaments/", "");
             var userInfo = new Cache().GetTournament(tournamentId);
-            var users = userInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]//tr");
-            // Строка с текущими пользователями
-            var currentUser = users.First(n =>
-                n.ChildNodes[2].FirstChild.GetAttributeValue("href", "") == "/people/" + currentUserId);
-
             var tournamentInfo = userInfo.DocumentNode.SelectNodes("//div[contains(@class, 'panel-default')]//li");
-            var tournamentDate = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText();
-            var tournamentName = userInfo.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText();
             var tournamentType = tournamentInfo
                 .FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Метод жеребьёвки:"))?
                 .GetDirectInnerText();
+            if (tournamentType != null && !tournamentType.Contains("Швейцарская")) return;
 
-            if (tournamentType!= null && !tournamentType.Contains("Швейцарская")) return;
+            var users = userInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]//tr");
+            // Строка с текущими пользователями
+            var currentUser = users.FirstOrDefault(n =>
+                n.ChildNodes[2].FirstChild.GetAttributeValue("href", "") == "/people/" + currentUserId);
+            if(currentUser==null) return;
+            var tournamentDate = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText();
+            var tournamentName = userInfo.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText();
+            
             
             var tournamentStats = _userInfo.TournamentStats.FirstOrDefault(t => t.Count() == currentUser.ChildNodes.Count - 9);
             if (tournamentStats == null)
