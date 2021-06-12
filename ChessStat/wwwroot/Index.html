@@ -81,6 +81,34 @@
                         }
                     });
             });
+            // Сила игры разными цветами
+            var gameStrengths = $("#gameStrengths");
+            gameStrengths.html("");
+
+            result.gameStrengths.forEach(rivals => {
+                var row = $("<tr/>");
+                switch (rivals.strength) {
+                    case 0:
+                        row.append("<td><strong>Слабые</strong></td>");
+                        break;
+                    case 1:
+                        row.append("<td><strong>Равные</strong></td>");
+                        break;
+                    case 2:
+                        row.append("<td><strong>Сильные</strong></td>");
+                        break;
+                }
+                row.append(addCell(rivals.white.wins));
+                row.append(addCell(rivals.black.wins));
+                row.append(addCell(rivals.white.draw));
+                row.append(addCell(rivals.black.draw));
+                row.append(addCell(rivals.white.loses));
+                row.append(addCell(rivals.black.loses));
+                row.append(addCell(Math.ceil(rivals.white.points * 100 / rivals.white.games) + "%"));
+                row.append(addCell(Math.ceil(rivals.black.points * 100 / rivals.black.games) + "%"));
+                gameStrengths.append(row);
+            })
+
             // Заполняем топ-сложных соперников
             var hardestGames = $("#hardestGames");
             hardestGames.html("");
@@ -223,19 +251,47 @@
         <div class="ui fluid accordion">
             <div class="title">
                 <i class="dropdown icon"></i>
-                Топ-20 частых соперников
+                Сила игры и цвет
             </div>
             <div class="content">
                 <table class="ui unstackable selectable table">
                     <thead>
                     <tr>
-                        <th>#</th>
-                        <th>Имя</th>
-                        <th>Игр</th>
-                        <th>Побед</th>
-                        <th>Ничьих</th>
-                        <th>Поражений</th>
+                        <th rowspan="2">Соперники</th>
+                        <th colspan="2">Побед</th>
+                        <th colspan="2">Ничьих</th>
+                        <th colspan="2">Поражений</th>
+                        <th colspan="2">% очков</th>
                     </tr>
+                    <tr>
+                        <th>Б</th>
+                        <th>Ч</th>
+                        <th>Б</th>
+                        <th>Ч</th>
+                        <th>Б</th>
+                        <th>Ч</th>
+                        <th>Б</th>
+                        <th>Ч</th>
+                    </tr>
+                    </thead>
+                    <tbody id="gameStrengths"></tbody>
+                </table>
+            </div>
+            <div class="title">
+                <i class="dropdown icon"></i>
+                Топ-20 частых соперников
+            </div>
+            <div class="content">
+                <table class="ui unstackable selectable table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Имя</th>
+                            <th>Игр</th>
+                            <th>Побед</th>
+                            <th>Ничьих</th>
+                            <th>Поражений</th>
+                        </tr>
                     </thead>
                     <tbody id="rivals"></tbody>
                 </table>
@@ -247,14 +303,14 @@
             <div class="content">
                 <table class="ui unstackable selectable table">
                     <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Соперник</th>
-                        <th>Рейтинг</th>
-                        <th>Дата</th>
-                        <th>Турнир</th>
-                        <th>Цвет</th>
-                    </tr>
+                        <tr>
+                            <th>#</th>
+                            <th>Соперник</th>
+                            <th>Рейтинг</th>
+                            <th>Дата</th>
+                            <th>Турнир</th>
+                            <th>Цвет</th>
+                        </tr>
                     </thead>
                     <tbody id="hardestGames"></tbody>
                 </table>
@@ -266,15 +322,15 @@
             <div class="content">
                 <table class="ui unstackable selectable table">
                     <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Соперник</th>
-                        <th>% очков</th>
-                        <th>Побед</th>
-                        <th>Ничьих</th>
-                        <th>Поражений</th>
-                        <th>Игр</th>
-                    </tr>
+                        <tr>
+                            <th>#</th>
+                            <th>Соперник</th>
+                            <th>% очков</th>
+                            <th>Побед</th>
+                            <th>Ничьих</th>
+                            <th>Поражений</th>
+                            <th>Игр</th>
+                        </tr>
                     </thead>
                     <tbody id="inconvenientOpponent"></tbody>
                 </table>
@@ -287,7 +343,6 @@
         </div>
     </div>
     <div class="ui segment">
-
         <div class="ui fluid accordion">
             <div class="title">
                 <i class="dropdown icon"></i>
