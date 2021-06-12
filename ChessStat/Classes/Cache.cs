@@ -14,19 +14,20 @@ namespace ChessStat.Classes
         private string TournamentsFolder;
         private string TournamentInfoFolder;
 
+
         public Cache()
         {
-         CacheFolder = Path.Combine(@"Cache");
-         UsersFolder = Path.Combine(CacheFolder, @"Users");
-         TournamentsFolder = Path.Combine(CacheFolder , @"Tournaments");
-         TournamentInfoFolder = Path.Combine(CacheFolder , @"TournamentInfo");
+            CacheFolder = Path.Combine(@"Cache");
+            UsersFolder = Path.Combine(CacheFolder, @"Users");
+            TournamentsFolder = Path.Combine(CacheFolder, @"Tournaments");
+            TournamentInfoFolder = Path.Combine(CacheFolder, @"TournamentInfo");
             // Создаем папки для кеша
             if (!Directory.Exists(CacheFolder)) Directory.CreateDirectory(CacheFolder);
             if (!Directory.Exists(UsersFolder)) Directory.CreateDirectory(UsersFolder);
             if (!Directory.Exists(TournamentsFolder)) Directory.CreateDirectory(TournamentsFolder);
             if (!Directory.Exists(TournamentInfoFolder)) Directory.CreateDirectory(TournamentInfoFolder);
         }
-        
+
         public HtmlDocument GetTournamentInfo(string id, int page)
         {
             var doc = new HtmlDocument();
@@ -78,7 +79,6 @@ namespace ChessStat.Classes
             }
 
             var tournamentUrl = "https://ratings.ruchess.ru/tournaments/" + id;
-
             doc = new HtmlWeb().Load(tournamentUrl);
             File.WriteAllText(fileName, doc.Text);
             return doc;

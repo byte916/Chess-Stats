@@ -258,7 +258,7 @@ namespace ChessStat.Classes
                 // Получаем результат игры в текущем туре
                 var tourResult = userRow.ChildNodes[i].GetDirectInnerText();
                 if (userRow.ChildNodes[i].GetAttributeValue("colspan", 0) == 2) addition = 1;
-                if (tourResult == "♞") continue;
+                if (tourResult == "♞" || tourResult == "") continue;
                 
                 // Получаем соперника в текущем туре
                 var rivalNumber = header[i + addition].GetDirectInnerText();

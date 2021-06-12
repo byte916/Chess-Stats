@@ -171,121 +171,140 @@
             return cell;
         }
     </script>
-    <div class="ui container">
-        <div class="ui clearing segment">
-            <h1 class="ui left floated header" style="margin-bottom: 0">Статистика РШФ</h1>
-            <h3 id="name" class="ui right floated header"></h3>
+<div class="ui container">
+    <div class="ui clearing segment">
+        <h1 class="ui left floated header" style="margin-bottom: 0">Статистика РШФ</h1>
+        <h3 id="name" class="ui right floated header"></h3>
+    </div>
+    <div id="search" class="ui segment">
+        <div class="ui dimmer">
+            <div class="ui loader"></div>
         </div>
-        <div id="search" class="ui segment">
-            <div class="ui dimmer">
-                <div class="ui loader"></div>
-            </div>
-            <div class="ui form">
-                <div class="fields" style="margin-bottom: 0">
-                    <div class="field">
-                        <input type="text" id="chess-id" placeholder="ID РШФ" />
-                    </div>
-                    <div class="field">
-                        <input class="ui button" type="button" id="getData" value="Получить" />
-                    </div>
+        <div class="ui form">
+            <div class="fields" style="margin-bottom: 0">
+                <div class="field">
+                    <input type="text" id="chess-id" placeholder="ID РШФ" />
                 </div>
-            </div>
-        </div>
-        <div id="all-stat" style="display: none" class="ui center aligned segment">
-            <div class="ui four column center aligned divided relaxed stackable grid container">
-                <div class="column">
-                    <div class="ui statistic">
-                        <div id="games" class="value count">0</div>
-                        <div class="label">Игр</div>
-                    </div>
+                <div class="field">
+                    <input class="ui button" type="button" id="getData" value="Получить" />
                 </div>
-                <div class="column">
-                    <div class="ui statistic">
-                        <div id="wins" class="value count">0</div>
-                        <div class="label">Побед</div>
-                    </div>
-                </div>
-                <div class="column">
-                    <div class="ui statistic">
-                        <div id="draws" class="value count">0</div>
-                        <div class="label">Ничьих</div>
-                    </div>
-                </div>
-                <div class="column">
-                    <div class="ui statistic">
-                        <div id="loses" class="value count">0</div>
-                        <div class="label">Поражений</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div id="data" style="display: none" class="ui segment">
-            <div class="ui fluid accordion">
-                <div class="title">
-                    <i class="dropdown icon"></i>
-                    Топ-20 частых соперников
-                </div>
-                <div class="content">
-                    <table class="ui unstackable selectable table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Имя</th>
-                                <th>Игр</th>
-                                <th>Побед</th>
-                                <th>Ничьих</th>
-                                <th>Поражений</th>
-                            </tr>
-                        </thead>
-                        <tbody id="rivals"></tbody>
-                    </table>
-                </div>
-                <div class="title">
-                    <i class="dropdown icon"></i>
-                    Топ-20 самых рейтинговых соперников, которые были обыграны
-                </div>
-                <div class="content">
-                    <table class="ui unstackable selectable table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Соперник</th>
-                                <th>Рейтинг</th>
-                                <th>Дата</th>
-                                <th>Турнир</th>
-                                <th>Цвет</th>
-                            </tr>
-                        </thead>
-                        <tbody id="hardestGames"></tbody>
-                    </table>
-                </div>
-                <div class="title">
-                    <i class="dropdown icon"></i>
-                    Топ-20 самых неудобных соперников
-                </div>
-                <div class="content">
-                    <table class="ui unstackable selectable table">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Соперник</th>
-                                <th>% очков</th>
-                                <th>Побед</th>
-                                <th>Ничьих</th>
-                                <th>Поражений</th>
-                                <th>Игр</th>
-                            </tr>
-                        </thead>
-                        <tbody id="inconvenientOpponent"></tbody>
-                    </table>
-                </div>
-                <div class="title">
-                    <i class="dropdown icon"></i>
-                    Сила игры по ходу турнира
-                </div>
-                <div class="content" id="toursStats"></div>
             </div>
         </div>
     </div>
+    <div id="all-stat" style="display: none" class="ui center aligned segment">
+        <div class="ui four column center aligned divided relaxed stackable grid container">
+            <div class="column">
+                <div class="ui statistic">
+                    <div id="games" class="value count">0</div>
+                    <div class="label">Игр</div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="ui statistic">
+                    <div id="wins" class="value count">0</div>
+                    <div class="label">Побед</div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="ui statistic">
+                    <div id="draws" class="value count">0</div>
+                    <div class="label">Ничьих</div>
+                </div>
+            </div>
+            <div class="column">
+                <div class="ui statistic">
+                    <div id="loses" class="value count">0</div>
+                    <div class="label">Поражений</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="data" style="display: none" class="ui segment">
+        <div class="ui fluid accordion">
+            <div class="title">
+                <i class="dropdown icon"></i>
+                Топ-20 частых соперников
+            </div>
+            <div class="content">
+                <table class="ui unstackable selectable table">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Имя</th>
+                        <th>Игр</th>
+                        <th>Побед</th>
+                        <th>Ничьих</th>
+                        <th>Поражений</th>
+                    </tr>
+                    </thead>
+                    <tbody id="rivals"></tbody>
+                </table>
+            </div>
+            <div class="title">
+                <i class="dropdown icon"></i>
+                Топ-20 самых рейтинговых соперников, которые были обыграны
+            </div>
+            <div class="content">
+                <table class="ui unstackable selectable table">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Соперник</th>
+                        <th>Рейтинг</th>
+                        <th>Дата</th>
+                        <th>Турнир</th>
+                        <th>Цвет</th>
+                    </tr>
+                    </thead>
+                    <tbody id="hardestGames"></tbody>
+                </table>
+            </div>
+            <div class="title">
+                <i class="dropdown icon"></i>
+                Топ-20 самых неудобных соперников
+            </div>
+            <div class="content">
+                <table class="ui unstackable selectable table">
+                    <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Соперник</th>
+                        <th>% очков</th>
+                        <th>Побед</th>
+                        <th>Ничьих</th>
+                        <th>Поражений</th>
+                        <th>Игр</th>
+                    </tr>
+                    </thead>
+                    <tbody id="inconvenientOpponent"></tbody>
+                </table>
+            </div>
+            <div class="title">
+                <i class="dropdown icon"></i>
+                Сила игры по ходу турнира
+            </div>
+            <div class="content" id="toursStats"></div>
+        </div>
+    </div>
+    <div class="ui segment">
+
+        <div class="ui fluid accordion">
+            <div class="title">
+                <i class="dropdown icon"></i>
+                О сайте
+            </div>
+            <div class="content">
+                Сайт позволяет посмотреть статистику результатов игр в турнирах, проводимых под эгидой РШФ. Для просмотре статистики необходимо ввести свой РШФ ID и нажать кнопку "Получить".<br />
+                <strong>Особенности работы</strong><br />
+                Сайт собирает данные только о турнирах проводимых по швейцарской и круговой системах.<br />
+                Все ошибки на сайте записываются и я их регулярно просматриваю. Так что, если у вас сейчас возникла ошибка - попробуйте позже, возможно она будет исправлена.
+                <strong>Контакты</strong><br/>
+                Все замечания, предложения и сообщения об ошибках можете направлять по следующим контактам:<br />
+                <a href="mailto:byte916@yandex.ru">byte916@yandex.ru</a><br />
+                <a href="https://vk.com/id2962981" target="_blank">Вконтакте</a>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
