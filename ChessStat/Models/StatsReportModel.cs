@@ -1,26 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace ChessStat.Models
 {
-    public class UserInfo
+    public class StatsReportModel
     {
-        /// <summary> Имя шахматиста </summary>
-        public string Name { get; set; }
-        public  List<Rival> Rivals { get; set; }
+        public CommonInfo Info { get; set; }
+
+        public List<Rival> Rivals { get; set; }
 
         /// <summary> Список самых рейтинговых соперников которые были обыграны </summary>
         public List<Game> HardestRivals { get; set; }
+        /// <summary> Статистика выступлений по турам </summary>
         public List<TourStat[]> TournamentStats { get; set; }
         public List<InconvenientOpponent> InconvenientOpponent { get; set; }
+    }
+
+    public class CommonInfo
+    {
+        /// <summary> Имя шахматиста </summary>
+        public string Name { get; set; }
         public int Games { get; set; }
         public int Wins { get; set; }
         public int Draws { get; set; }
         public int Loses { get; set; }
     }
 
+    /// <summary> Статистика по одному туру </summary>
     public class TourStat
     {
         public decimal AvgElo { get; set; }
@@ -33,6 +38,16 @@ namespace ChessStat.Models
 
     public class Rival
     {
+        public Rival(string id, string name)
+        {
+            Id = id;
+            Name = name;
+            Games = 0;
+            Wins = 0;
+            Draws = 0;
+            Loses = 0;
+        }
+
         public string Id { get; set; }
         public string Name { get; set; }
         public int Games { get; set; }
