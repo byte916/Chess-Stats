@@ -13,7 +13,7 @@ namespace ChessStat.Classes
         private string UsersFolder;
         private string TournamentsFolder;
         private string TournamentInfoFolder;
-
+        private HtmlWeb htmlWeb;
 
         public Cache()
         {
@@ -26,6 +26,15 @@ namespace ChessStat.Classes
             if (!Directory.Exists(UsersFolder)) Directory.CreateDirectory(UsersFolder);
             if (!Directory.Exists(TournamentsFolder)) Directory.CreateDirectory(TournamentsFolder);
             if (!Directory.Exists(TournamentInfoFolder)) Directory.CreateDirectory(TournamentInfoFolder);
+            htmlWeb = new HtmlWeb
+            {
+                PreRequest = request =>
+                {
+                    // Делаем таймаут 4 минуты
+                    request.Timeout = 240 * 1000;
+                    return true;
+                }
+            };
         }
 
         public HtmlDocument GetTournamentInfo(string id, int page)
@@ -44,7 +53,7 @@ namespace ChessStat.Classes
 
             var tournamentsUrl = "https://ratings.ruchess.ru/people/" + id + "/tournaments";
             if (page > 1) tournamentsUrl += "?page=" + page;
-            doc = new HtmlWeb().Load(tournamentsUrl);
+            doc = htmlWeb.Load(tournamentsUrl);
 
             File.WriteAllText(fileName, doc.Text);
             File.SetCreationTime(fileName, DateTime.Now);
@@ -62,7 +71,7 @@ namespace ChessStat.Classes
             }
 
             var userInfoUrl = "https://ratings.ruchess.ru/people/" + id;
-            doc = new HtmlWeb().Load(userInfoUrl);
+            doc = htmlWeb.Load(userInfoUrl);
 
             File.WriteAllText(fileName, doc.Text);
             return doc;
@@ -79,7 +88,7 @@ namespace ChessStat.Classes
             }
 
             var tournamentUrl = "https://ratings.ruchess.ru/tournaments/" + id;
-            doc = new HtmlWeb().Load(tournamentUrl);
+            doc = htmlWeb.Load(tournamentUrl);
             File.WriteAllText(fileName, doc.Text);
             return doc;
         }
