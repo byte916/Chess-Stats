@@ -26,7 +26,225 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css">
     <script src="scripts/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
-    <div style="height: 78%" class="ui middle aligned center aligned grid">
+    <script>
+        $(document).ready(() => {
+            $('.ui.accordion').accordion();
+
+            // Включаем анимацию для цифр общей статистики
+            $('.count').each(function () {
+                $(this).prop('Counter', 0).animate({
+                    Counter: $(this).text()
+                },
+                    {
+                        duration: 1000,
+                        easing: 'swing',
+                        step: function (now) {
+                            this.innerHTML = Math.ceil(now).toString().replace(/(\d)(?=(\d{3})+(\D|$))/g, '$1&thinsp;');
+                        }
+                    });
+            });
+
+            // Клик на кнопке Поиск в главном блоке
+            $(".main-seach-button").on("click", () => {
+                $(".dimmer").dimmer({
+                    closable: false
+                }).dimmer("show");
+
+                var id = $(".main-chess-id").val();
+                loadResults(id,
+                    // Успешная загрузка
+                    () => {
+                        setTimeout(() => {
+                            $(".dimmer").dimmer("hide");
+                            $("#main-search").css("display", "none");
+                            $("#content").fadeIn(100);
+                        }, 300);
+                    },
+                    // Не успешная загрузка
+                    () => {
+                        setTimeout(() => {
+                            $(".dimmer").dimmer("hide");
+                        }, 300);
+                    })
+
+            })
+        })
+
+        function loadResults(chessId, successCallBack, errorCallBack) {
+            $.ajax({
+                url: 'stat',
+                data: "chessId=" + chessId,
+                success: function (result) {
+                    if (result == null) return errorCallBack();
+                    successCallBack();
+                    showResult(result);
+                },
+                error: function () {
+                    errorCallBack();
+                    alert("Произошла ошибка");
+                }
+            });
+        }
+
+        function showResult(result) {
+            console.log(result);
+            fillOpponents(result.rivals);
+            fillCommonStats(result.info);
+            fillColorStrength(result.gameStrengths);
+            fillHardestGames(result.hardestRivals);
+            fillTournamentsStats(result.tournamentStats);
+            fillInconenientOpponents(result.inconvenientOpponent);
+        }
+
+        function fillCommonStats(commonStats) {
+            $("#name").html(commonStats.name);
+            $("#games").text(commonStats.games);
+            $("#wins").text(commonStats.wins);
+            $("#draws").text(commonStats.draws);
+            $("#loses").text(commonStats.loses);
+        }
+        function fillOpponents(rivals) {
+            // Заполняем топ-частых соперников
+            var opponentsTable = $("#opponents");
+            opponentsTable.html("");
+            var index = 1;
+            rivals.forEach(rival => {
+                var row = $("<tr/>");
+                row.append(addCell('#' + index++));
+                row.append(addCell('<a href="https://ratings.ruchess.ru/people/' + rival.id + '" target="_blank">' + rival.name + '</a>'));
+                row.append(addCell(rival.games));
+                row.append(addCell(rival.wins));
+                row.append(addCell(rival.draws));
+                row.append(addCell(rival.loses));
+                opponentsTable.append(row);
+            });
+        }
+        function fillColorStrength(gameStrengths) {
+            var gameStrengthsTable = $("#gameStrengths");
+            gameStrengthsTable.html("");
+
+            gameStrengths.forEach(rivals => {
+                var row = $("<tr/>");
+                switch (rivals.strength) {
+                    case 0:
+                        row.append("<td><strong>Слабые</strong></td>");
+                        break;
+                    case 1:
+                        row.append("<td><strong>Равные</strong></td>");
+                        break;
+                    case 2:
+                        row.append("<td><strong>Сильные</strong></td>");
+                        break;
+                }
+                row.append(addCell(rivals.white.wins));
+                row.append(addCell(rivals.black.wins));
+                row.append(addCell(rivals.white.draws));
+                row.append(addCell(rivals.black.draws));
+                row.append(addCell(rivals.white.loses));
+                row.append(addCell(rivals.black.loses));
+                row.append(addCell(Math.ceil(rivals.white.points * 100 / rivals.white.games) + "%"));
+                row.append(addCell(Math.ceil(rivals.black.points * 100 / rivals.black.games) + "%"));
+                gameStrengthsTable.append(row);
+            })
+        }
+        function fillHardestGames(hardestRivals) {
+            // Заполняем топ-сложных соперников
+            var hardestGames = $("#hardestGames");
+            hardestGames.html("");
+            index = 1;
+            hardestRivals.forEach(rival => {
+                var row = $("<tr/>");
+                row.append(addCell('#' + index++));
+                row.append(addCell('<a href="https://ratings.ruchess.ru/people/' + rival.id + '" target="_blank">' + rival.name + '</a>'));
+                row.append(addCell(rival.elo));
+                row.append(addCell(rival.date));
+                row.append(addCell(rival.tournament));
+                row.append(addCell(rival.color));
+                hardestGames.append(row);
+            });
+        }
+        function fillTournamentsStats(tournamentStats) {
+            // Сила игры по ходу турнира
+            var toursStats = $("#toursStats");
+            toursStats.html("");
+            tournamentStats.forEach(tours => {
+                toursStats.append("<strong>Турнир из " + tours.length + " туров</strong>")
+                var table = $('<table class="ui unstackable selectable right aligned table">');
+                var thead = $('<thead>');
+                var tbody = $('<tbody>');
+                var tourRow = $('<tr>');
+                var eloRow = $('<tr>');
+                var percentRow = $('<tr>');
+                var winsRow = $('<tr>');
+                var drawsRow = $('<tr>');
+                var losesRow = $('<tr>');
+                var gamesRow = $('<tr>');
+
+                var index = 1;
+                tourRow.append('<th></th>');
+                eloRow.append('<td>Средний ЭЛО соперников</td>');
+                percentRow.append('<td>% набранных очков</td>');
+                winsRow.append('<td>Побед</td>');
+                drawsRow.append('<td>Ничьих</td>');
+                losesRow.append('<td>Поражений</td>');
+                gamesRow.append('<td>Всего Игр</td>');
+
+                tours.forEach(tour => {
+                    tourRow.append('<th>' + index++ + '</th>');
+                    eloRow.append('<td>' + tour.avgElo + '</td>');
+
+                    var percentColor = ''
+                    if (tour.pointPercent >= 75) percentColor = 'green';
+                    else if (tour.pointPercent >= 50) percentColor = 'olive';
+                    else if (tour.pointPercent >= 25) percentColor = 'yellow';
+                    else percentColor = 'orange';
+                    percentRow.append('<td class="' + percentColor + '">' + tour.pointPercent + '%</td>');
+                    winsRow.append('<td>' + tour.wins + '</td>');
+                    drawsRow.append('<td>' + tour.draws + '</td>');
+                    losesRow.append('<td>' + tour.loses + '</td>');
+                    gamesRow.append('<td>' + tour.games + '</td>');
+                })
+                thead.append(tourRow);
+                tbody.append(eloRow);
+                tbody.append(percentRow);
+                tbody.append(winsRow);
+                tbody.append(drawsRow);
+                tbody.append(losesRow);
+                tbody.append(gamesRow);
+
+                table.append(thead);
+                table.append(tbody);
+
+                toursStats.append(table);
+            })
+        }
+        function fillInconenientOpponents(inconvenientOpponent) {
+            // Неудобные соперники
+            var inconvenientOpponentTable = $("#inconvenientOpponent");
+            inconvenientOpponentTable.html('');
+            index = 1;
+            inconvenientOpponent.forEach(op => {
+                var row = $("<tr>");
+                row.append(addCell(index++));
+                row.append(addCell(op.name));
+                row.append(addCell(Math.ceil(100 * op.points / op.games)));
+                row.append(addCell(op.wins));
+                row.append(addCell(op.draws));
+                row.append(addCell(op.loses));
+                row.append(addCell(op.games));
+                inconvenientOpponentTable.append(row);
+            })
+        }
+        function addCell(data) {
+            var cell = $("<td/>");
+            cell.html(data);
+            return cell;
+        }
+    </script>
+    <div class="ui page dimmer">
+        <div class="ui text loader">Подождите, идёт загрузка...</div>
+    </div>
+    <div style="height: 78%;" id="main-search" class="ui middle aligned center aligned grid">
         <div style="width: auto;" class="column">
             <div class="ui unstackable form">
                 <h1 class="ui header">Статистика ФШР</h1>
@@ -34,11 +252,176 @@
                 <div class="ui hidden divider"></div>
                 <div class="fields" style="margin-bottom: 0">
                     <div class="field">
-                        <input type="text" placeholder="ID РШФ" />
+                        <input class="main-chess-id" type="text" placeholder="ID РШФ" />
                     </div>
                     <div class="field">
-                        <input class="ui green button" type="button" value="Получить" />
+                        <input class="ui green main-seach-button button" type="button" value="Получить" />
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="content" style="display: none">
+        <!-- Шапка -->
+        <div class="ui vertical segment">
+            <div class="ui container">
+                <div class="ui two columns stackable grid">
+                    <div class="tablet computer only column">
+                        <h1 class="ui header">
+                            <i class="circular small chess king icon"></i>
+                            <div class="content">
+                                Статистика ФШР
+                            </div>
+                        </h1>
+                    </div>
+                    <div class="center aligned mobile only column">
+                        <h1 class="ui header">Статистика ФШР</h1>
+                    </div>
+                    <div class="tablet computer only right aligned column">
+                        <div class="ui right action left icon input">
+                            <i class="search icon"></i>
+                            <input type="text" placeholder="ID РШФ" />
+                            <button class="ui green head-seach-button button">Получить</button>
+                        </div>
+                    </div>
+                    <div class="mobile only center aligned column">
+                        <div class="ui right action left icon input">
+                            <i class="search icon"></i>
+                            <input type="text" placeholder="ID РШФ" />
+                            <button class="ui green head-seach-button button">Получить</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ui vertical placeholder segment">
+            <div class="ui center aligned container">
+                <h2 id="name"></h2>
+                <div class="ui hidden divider"></div>
+                <div class="ui hidden divider"></div>
+            </div>
+            <!-- Общая статистика -->
+            <div id="common-stats" class="ui center aligned relaxed grid container">
+                <div class="eight wide mobile four wide tablet four wide computer column">
+                    <div class="ui statistic">
+                        <div id="games" class="value count">0</div>
+                        <div class="label">Игр</div>
+                    </div>
+                </div>
+                <div class="eight wide mobile four wide tablet four wide computer column">
+                    <div class="ui statistic">
+                        <div id="wins" class="value count">0</div>
+                        <div class="label">Побед</div>
+                    </div>
+                </div>
+                <div class="eight wide mobile four wide tablet four wide computer column">
+                    <div class="ui statistic">
+                        <div id="draws" class="value count">0</div>
+                        <div class="label">Ничьих</div>
+                    </div>
+                </div>
+                <div class="eight wide mobile four wide tablet four wide computer column">
+                    <div class="ui statistic">
+                        <div id="loses" class="value count">0</div>
+                        <div class="label">Поражений</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ui vertical segment">
+            <div class="ui container">
+                <div class="ui fluid accordion">
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Сила игры и цвет
+                    </div>
+                    <div class="content">
+                        <table class="ui unstackable selectable table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Соперники</th>
+                                    <th colspan="2">Побед</th>
+                                    <th colspan="2">Ничьих</th>
+                                    <th colspan="2">Поражений</th>
+                                    <th colspan="2">% очков</th>
+                                </tr>
+                                <tr>
+                                    <th>Б</th>
+                                    <th>Ч</th>
+                                    <th>Б</th>
+                                    <th>Ч</th>
+                                    <th>Б</th>
+                                    <th>Ч</th>
+                                    <th>Б</th>
+                                    <th>Ч</th>
+                                </tr>
+                            </thead>
+                            <tbody id="gameStrengths"></tbody>
+                        </table>
+                    </div>
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Топ-20 частых соперников
+                    </div>
+                    <div class="content">
+                        <table class="ui unstackable selectable table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Имя</th>
+                                    <th>Игр</th>
+                                    <th>Побед</th>
+                                    <th>Ничьих</th>
+                                    <th>Поражений</th>
+                                </tr>
+                            </thead>
+                            <tbody id="opponents"></tbody>
+                        </table>
+                    </div>
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Топ-20 самых рейтинговых соперников, которые были обыграны
+                    </div>
+                    <div class="content">
+                        <table class="ui unstackable selectable table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Соперник</th>
+                                    <th>Рейтинг</th>
+                                    <th>Дата</th>
+                                    <th>Турнир</th>
+                                    <th>Цвет</th>
+                                </tr>
+                            </thead>
+                            <tbody id="hardestGames"></tbody>
+                        </table>
+                    </div>
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Топ-20 самых неудобных соперников
+                    </div>
+                    <div class="content">
+                        <table class="ui unstackable selectable table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Соперник</th>
+                                    <th>% очков</th>
+                                    <th>Побед</th>
+                                    <th>Ничьих</th>
+                                    <th>Поражений</th>
+                                    <th>Игр</th>
+                                </tr>
+                            </thead>
+                            <tbody id="inconvenientOpponent"></tbody>
+                        </table>
+                    </div>
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Сила игры по ходу турнира
+                    </div>
+                    <div class="content" id="toursStats"></div>
                 </div>
             </div>
         </div>

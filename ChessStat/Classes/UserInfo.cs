@@ -15,10 +15,11 @@ namespace ChessStat.Classes
     {
         public StatsReportModel Get(string id)
         {
-            id = id.Trim();
             var statsReportModel = new StatsReportModel();
+            if (string.IsNullOrWhiteSpace(id)) return null;
+            id = id.Trim();
 
-            if (string.IsNullOrWhiteSpace(id)) return statsReportModel;
+            if (string.IsNullOrWhiteSpace(id)) return null;
             GetTournamentsList(id, 1, statsReportModel.Rivals, statsReportModel.TournamentStats, statsReportModel.HardestRivals, statsReportModel.GameStrengths);
 
             statsReportModel.Info = GetCommonStats(id, statsReportModel.Rivals);
