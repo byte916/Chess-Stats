@@ -26,6 +26,19 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css">
     <script src="scripts/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
+    <style>
+        .bold {
+            font-weight: bold;
+        }
+
+        td.lightGray, th.lightGray {
+            background-color: #EEE !important;
+        }
+
+        tr:hover > td.lightGray {
+            background-color: #DDD;
+        }
+    </style>
     <script>
         $(document).ready(() => {
             $('.ui.accordion').accordion();
@@ -131,9 +144,9 @@
                 row.append(addCell('#' + index++));
                 row.append(addCell('<a href="https://ratings.ruchess.ru/people/' + rival.id + '" target="_blank">' + rival.name + '</a>'));
                 row.append(addCell(rival.games));
-                row.append(addCell(rival.wins));
-                row.append(addCell(rival.draws));
-                row.append(addCell(rival.loses));
+                row.append(addCell(rival.wins == 0 ? '' : rival.wins));
+                row.append(addCell(rival.draws == 0 ? '' : rival.draws));
+                row.append(addCell(rival.loses == 0 ? '' : rival.loses));
                 opponentsTable.append(row);
             });
         }
@@ -141,30 +154,89 @@
             var gameStrengthsTable = $("#gameStrengths");
             gameStrengthsTable.html("");
 
+            var totalWinsWhite = 0;
+            var totalWinsBlack = 0;
+            var totalDrawsWhite = 0;
+            var totalDrawsBlack = 0;
+            var totalLosesWhite = 0;
+            var totalLosesBlack = 0;
+
             gameStrengths.forEach(rivals => {
                 var row = $("<tr/>");
                 switch (rivals.strength) {
                     case 0:
-                        row.append("<td><strong>Слабые</strong></td>");
+                        row.append("<td style='text-align: left;'><strong>Слабые</strong></td>");
                         break;
                     case 1:
-                        row.append("<td><strong>Равные</strong></td>");
+                        row.append("<td style='text-align: left;'><strong>Равные</strong></td>");
                         break;
                     case 2:
-                        row.append("<td><strong>Сильные</strong></td>");
+                        row.append("<td style='text-align: left;'><strong>Сильные</strong></td>");
                         break;
                 }
-                row.append(addCell(rivals.white.wins));
-                row.append(addCell(rivals.black.wins));
-                row.append(addCell(rivals.white.draws));
-                row.append(addCell(rivals.black.draws));
-                row.append(addCell(rivals.white.loses));
-                row.append(addCell(rivals.black.loses));
-                row.append(addCell(Math.ceil(rivals.white.points * 100 / rivals.white.games) + "%"));
-                row.append(addCell(Math.ceil(rivals.black.points * 100 / rivals.black.games) + "%"));
+                var whitePointPercent = Math.round(rivals.white.points * 100 / rivals.white.games);
+                var blackPointPercent = Math.round(rivals.black.points * 100 / rivals.black.games);
+                totalWinsWhite += rivals.white.wins;
+                totalWinsBlack += rivals.black.wins;
+                totalDrawsWhite += rivals.white.draws;
+                totalDrawsBlack += rivals.black.draws;
+                totalLosesWhite += rivals.white.loses;
+                totalLosesBlack += rivals.black.loses;
+                var totalWhite = rivals.white.wins + rivals.white.draws + rivals.white.loses;
+                var totalBlack = rivals.black.wins + rivals.black.draws + rivals.black.loses;
+
+                row.append(addCell(totalWhite));
+                row.append(addCell(totalBlack, null, null, 'lightGray'));
+
+                var isWhiteWinsBest = isBestValue(rivals.white.wins, rivals.black.wins, totalWhite, totalBlack);
+                var isWhiteDrawBest = isBestValue(rivals.white.draws, rivals.black.draws, totalWhite, totalBlack);
+                var isWhiteLoseBest = !isBestValue(rivals.white.loses, rivals.black.loses, totalWhite, totalBlack);
+                var isWhitePercentBest = whitePointPercent > blackPointPercent;
+
+                row.append(addCell(rivals.white.wins, isWhiteWinsBest, isWhiteWinsBest ? 'green' : ''));
+                row.append(addCell(rivals.black.wins, !isWhiteWinsBest, !isWhiteWinsBest ? 'green' : '', 'lightGray'));
+                row.append(addCell(rivals.white.draws, isWhiteDrawBest, isWhiteDrawBest ? 'orange' : ''));
+                row.append(addCell(rivals.black.draws, !isWhiteDrawBest, !isWhiteDrawBest ? 'orange' : '', 'lightGray'));
+                row.append(addCell(rivals.white.loses, isWhiteLoseBest, isWhiteLoseBest ? 'red' : ''));
+                row.append(addCell(rivals.black.loses, !isWhiteLoseBest, !isWhiteLoseBest ? 'red' : '', 'lightGray'));
+                row.append(addCell(whitePointPercent + "%", isWhitePercentBest, isWhitePercentBest ? 'green' : ''));
+                row.append(addCell(blackPointPercent + "%", !isWhitePercentBest, !isWhitePercentBest ? 'green' : '', 'lightGray'));
                 gameStrengthsTable.append(row);
             })
+
+            var totalWhiteGames = totalWinsWhite + totalDrawsWhite + totalLosesWhite;
+            var totalBlackGames = totalWinsBlack + totalDrawsBlack + totalLosesBlack;
+            var whitePointPercent = Math.ceil((totalWinsWhite + totalDrawsWhite / 2) * 100 / (totalWinsWhite + totalDrawsWhite + totalLosesWhite));
+            var blackPointPercent = Math.ceil((totalWinsBlack + totalDrawsBlack / 2) * 100 / (totalWinsBlack + totalDrawsBlack + totalLosesBlack));
+
+            var isWhiteWinsBest = isBestValue(totalWinsWhite, totalWinsBlack, totalWhiteGames, totalBlackGames);
+            var isWhiteDrawBest = isBestValue(totalDrawsWhite, totalDrawsBlack, totalWhiteGames, totalBlackGames);
+            var isWhiteLoseBest = !isBestValue(totalLosesWhite, totalLosesBlack, totalWhiteGames, totalBlackGames);
+            var isWhitePercentBest = whitePointPercent > blackPointPercent;
+
+            var totalRow = $("<tr/>");
+            totalRow.append("<td style='text-align: left;'><strong>Итого</strong></td>");
+            totalRow.append(addCell(totalWhiteGames));
+            totalRow.append(addCell(totalBlackGames, null, null, 'lightGray'));
+            totalRow.append(addCell(totalWinsWhite, totalWinsWhite > totalWinsBlack, totalWinsWhite > totalWinsBlack ? 'green' : ''));
+            totalRow.append(addCell(totalWinsBlack, totalWinsWhite < totalWinsBlack, totalWinsWhite < totalWinsBlack ? 'green' : '', 'lightGray'));
+            totalRow.append(addCell(totalDrawsWhite, totalDrawsWhite > totalDrawsBlack, totalDrawsWhite > totalDrawsBlack ? 'orange' : ''));
+            totalRow.append(addCell(totalDrawsBlack, totalDrawsWhite < totalDrawsBlack, totalDrawsWhite < totalDrawsBlack ? 'orange' : '', 'lightGray'));
+            totalRow.append(addCell(totalLosesWhite, totalLosesWhite < totalLosesBlack, totalLosesWhite < totalLosesBlack ? 'red' : ''));
+            totalRow.append(addCell(totalLosesBlack, totalLosesWhite > totalLosesBlack, totalLosesWhite > totalLosesBlack ? 'red' : '', 'lightGray'));
+            totalRow.append(addCell(whitePointPercent + "%", isWhitePercentBest, isWhitePercentBest ? 'green' : ''));
+            totalRow.append(addCell(blackPointPercent + "%", !isWhitePercentBest, !isWhitePercentBest ? 'green' : '', 'lightGray'));
+            gameStrengthsTable.append(totalRow);
         }
+
+        // Проверяет, является ли текущий показатель лучше другого, учитывая соотношения общего количества игр.
+        function isBestValue(current, other, currentTotal, otherTotal) {
+            if (currentTotal == 0 && otherTotal == 0) return null;
+            if (currentTotal == 0) currentTotal = 1;
+            if (otherTotal == 0) otherTotal = 1;
+            return current / currentTotal >= other / otherTotal;
+        }
+
         function fillHardestGames(hardestRivals) {
             // Заполняем топ-сложных соперников
             var hardestGames = $("#hardestGames");
@@ -246,15 +318,22 @@
                 row.append(addCell(index++));
                 row.append(addCell(op.name));
                 row.append(addCell(Math.ceil(100 * op.points / op.games)));
-                row.append(addCell(op.wins));
-                row.append(addCell(op.draws));
-                row.append(addCell(op.loses));
+                row.append(addCell(op.wins == 0 ? '' : op.wins));
+                row.append(addCell(op.draws == 0 ? '' : op.draws));
+                row.append(addCell(op.loses == 0 ? '' : op.loses));
                 row.append(addCell(op.games));
                 inconvenientOpponentTable.append(row);
             })
         }
-        function addCell(data) {
+        function addCell(data, isStrong, colorText, colorBack) {
+            var style = 'ui';
+            if (colorText != null) style = style + ' text ' + colorText;
+
             var cell = $("<td/>");
+
+            if (colorBack != null) cell.addClass(colorBack);
+            if (isStrong) style = style + ' bold'
+            data = "<span class='" + style + "'>" + data + "</strong>";
             cell.html(data);
             return cell;
         }
@@ -287,9 +366,7 @@
                     <div class="tablet computer only column">
                         <h1 class="ui header">
                             <i class="circular small chess king icon"></i>
-                            <div class="content">
-                                Статистика ФШР
-                            </div>
+                            <div class="content">Статистика ФШР</div>
                         </h1>
                     </div>
                     <div class="center aligned mobile only column">
@@ -358,27 +435,31 @@
                             <thead>
                                 <tr>
                                     <th rowspan="2">Соперники</th>
-                                    <th colspan="2">Побед</th>
-                                    <th colspan="2">Ничьих</th>
-                                    <th colspan="2">Поражений</th>
-                                    <th colspan="2">% очков</th>
+                                    <th colspan="2" style="text-align: center">Игр</th>
+                                    <th colspan="2" style="text-align: center">Побед</th>
+                                    <th colspan="2" style="text-align: center">Ничьих</th>
+                                    <th colspan="2" style="text-align: center">Поражений</th>
+                                    <th colspan="2" style="text-align: center">% очков</th>
                                 </tr>
                                 <tr>
-                                    <th>Б</th>
-                                    <th>Ч</th>
-                                    <th>Б</th>
-                                    <th>Ч</th>
-                                    <th>Б</th>
-                                    <th>Ч</th>
-                                    <th>Б</th>
-                                    <th>Ч</th>
+                                    <th style="text-align: right">Б</th>
+                                    <th class="lightGray" style="text-align: right">Ч</th>
+                                    <th style="text-align: right">Б</th>
+                                    <th class="lightGray" style="text-align: right">Ч</th>
+                                    <th style="text-align: right">Б</th>
+                                    <th class="lightGray" style="text-align: right">Ч</th>
+                                    <th style="text-align: right">Б</th>
+                                    <th class="lightGray" style="text-align: right">Ч</th>
+                                    <th style="text-align: right">Б</th>
+                                    <th class="lightGray" style="text-align: right">Ч</th>
                                 </tr>
                             </thead>
-                            <tbody id="gameStrengths"></tbody>
+                            <tbody id="gameStrengths" class="right aligned"></tbody>
                         </table>
                         <div class="ui ordered list">
                             <div class="item">Равным считается соперник с рейтингом +/- 50 пунктов ЭЛО</div>
-                            <div class="item">В статистике не участвуют соперники с рейтингом ровно 1000 ЭЛО</div>
+                            <div class="item">В статистике не участвуют соперники с рейтингом равным ровно 1000 ЭЛО</div>
+                            <div class="item">Цветом в таблице выделены лучшие показатели (с учетом соотношения игр)</div>
                         </div>
                     </div>
                     <div class="title">
@@ -392,9 +473,9 @@
                                     <th>#</th>
                                     <th>Имя</th>
                                     <th>Игр</th>
-                                    <th>Побед</th>
-                                    <th>Ничьих</th>
-                                    <th>Поражений</th>
+                                    <th>+</th>
+                                    <th>=</th>
+                                    <th>-</th>
                                 </tr>
                             </thead>
                             <tbody id="opponents"></tbody>
@@ -430,9 +511,9 @@
                                     <th>#</th>
                                     <th>Соперник</th>
                                     <th>% очков</th>
-                                    <th>Побед</th>
-                                    <th>Ничьих</th>
-                                    <th>Поражений</th>
+                                    <th>+</th>
+                                    <th>=</th>
+                                    <th>-</th>
                                     <th>Игр</th>
                                 </tr>
                             </thead>
