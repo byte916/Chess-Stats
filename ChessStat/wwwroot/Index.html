@@ -59,6 +59,7 @@
                             $("#main-search").css("display", "none");
                             $("#content").fadeIn(100);
                         }, 300);
+                        $(".head-chess-id").val(id)
                     },
                     // Не успешная загрузка
                     () => {
@@ -66,7 +67,25 @@
                             $(".dimmer").dimmer("hide");
                         }, 300);
                     })
+            })
 
+            $(".head-seach-button").on("click", (item) => {
+                $(".dimmer").dimmer({
+                    closable: false
+                }).dimmer("show");
+                loadResults($(item.target).parent().children(".head-chess-id").val(),
+                    // Успешная загрузка
+                    () => {
+                        setTimeout(() => {
+                            $(".dimmer").dimmer("hide");
+                        }, 300);
+                    },
+                    // Не успешная загрузка
+                    () => {
+                        setTimeout(() => {
+                            $(".dimmer").dimmer("hide");
+                        }, 300);
+                    })
             })
         })
 
@@ -87,7 +106,6 @@
         }
 
         function showResult(result) {
-            console.log(result);
             fillOpponents(result.rivals);
             fillCommonStats(result.info);
             fillColorStrength(result.gameStrengths);
@@ -280,14 +298,14 @@
                     <div class="tablet computer only right aligned column">
                         <div class="ui right action left icon input">
                             <i class="search icon"></i>
-                            <input type="text" placeholder="ID РШФ" />
+                            <input type="text" class="head-chess-id" placeholder="ID РШФ" />
                             <button class="ui green head-seach-button button">Получить</button>
                         </div>
                     </div>
                     <div class="mobile only center aligned column">
                         <div class="ui right action left icon input">
                             <i class="search icon"></i>
-                            <input type="text" placeholder="ID РШФ" />
+                            <input type="text" class="head-chess-id" placeholder="ID РШФ" />
                             <button class="ui green head-seach-button button">Получить</button>
                         </div>
                     </div>
