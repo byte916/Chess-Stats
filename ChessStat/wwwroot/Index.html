@@ -39,7 +39,7 @@
             background-color: #DDD;
         }
     </style>
-    <script>
+<script>
         $(document).ready(() => {
             $('.ui.accordion').accordion();
 
@@ -107,7 +107,7 @@
                 url: 'stat',
                 data: "chessId=" + chessId,
                 success: function (result) {
-                    if (result == null) return errorCallBack();
+                    if (result == null || result == 'null') return errorCallBack();
                     successCallBack();
                     showResult(result);
                 },
@@ -146,7 +146,8 @@
                 if (isGoodResult) row.addClass("left marked green");
                 else row.addClass("left marked red");
                 row.append(addCell('#' + index++));
-                row.append(addCell('<a href="https://ratings.ruchess.ru/people/' + rival.id + '" target="_blank">' + rival.name + '</a>'));
+                
+                row.append(addCell('<a href="' + getRivalHref(rival.id) + '" target="_blank">' + rival.name + '</a>'));
                 row.append(addCell(rival.games));
                 row.append(addCell(rival.wins == 0 ? '' : rival.wins, rival.wins > rival.draws && rival.wins > rival.loses, "green"));
                 row.append(addCell(rival.draws == 0 ? '' : rival.draws, rival.draws > rival.wins && rival.draws > rival.loses, "orange"));
@@ -238,7 +239,13 @@
             if (currentTotal == 0) currentTotal = 1;
             if (otherTotal == 0) otherTotal = 1;
             return current / currentTotal >= other / otherTotal;
-        }
+    }
+
+    function getRivalHref(id) {
+        if (id == null) return id;
+        if (id.indexOf("ratings.fide") == -1) return 'https://ratings.ruchess.ru/people/' + id;
+        return id;
+    }
 
         function fillHardestGames(hardestRivals) {
             // Заполняем топ-сложных соперников
@@ -248,11 +255,11 @@
             hardestRivals.forEach(rival => {
                 var row = $("<tr/>");
                 row.append(addCell('#' + index++));
-                row.append(addCell('<a href="https://ratings.ruchess.ru/people/' + rival.id + '" target="_blank">' + rival.name + '</a>'));
+                row.append(addCell('<a href="' + getRivalHref(rival.id) + '" target="_blank">' + rival.name + '</a>'));
                 row.append(addCell(rival.elo));
                 row.append(addCell(rival.date));
                 row.append(addCell(rival.tournament));
-                row.append(addCell(rival.color));
+                row.append(addCell(rival.color, null, null, rival.color=="Черные"? "lightGray": null));
                 hardestGames.append(row);
             });
         }
@@ -319,11 +326,11 @@
             inconvenientOpponent.forEach(op => {
                 var row = $("<tr>");
                 row.append(addCell(index++));
-                row.append(addCell(op.name));
+                row.append(addCell('<a href="' + getRivalHref(op.id) + '" target="_blank">' + op.name + '</a>'));
                 row.append(addCell(Math.ceil(100 * op.points / op.games)));
-                row.append(addCell(op.wins == 0 ? '' : op.wins));
-                row.append(addCell(op.draws == 0 ? '' : op.draws));
-                row.append(addCell(op.loses == 0 ? '' : op.loses));
+                row.append(addCell(op.wins == 0 ? '' : op.wins, null, "green"));
+                row.append(addCell(op.draws == 0 ? '' : op.draws, null, "orange"));
+                row.append(addCell(op.loses == 0 ? '' : op.loses, null, "red"));
                 row.append(addCell(op.games));
                 inconvenientOpponentTable.append(row);
             })

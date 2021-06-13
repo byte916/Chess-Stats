@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
 
@@ -14,6 +15,7 @@ namespace ChessStat.Classes
         private string TournamentsFolder;
         private string TournamentInfoFolder;
         private HtmlWeb htmlWeb;
+        private HttpStatusCode statusCode;
 
         public Cache()
         {
@@ -33,6 +35,13 @@ namespace ChessStat.Classes
                     // Делаем таймаут 4 минуты
                     request.Timeout = 240 * 1000;
                     return true;
+                },
+                PostResponse = (request, response) =>
+                {
+                    if (response != null)
+                    {
+                        statusCode = response.StatusCode;
+                    }
                 }
             };
         }
@@ -54,7 +63,7 @@ namespace ChessStat.Classes
             var tournamentsUrl = "https://ratings.ruchess.ru/people/" + id + "/tournaments";
             if (page > 1) tournamentsUrl += "?page=" + page;
             doc = htmlWeb.Load(tournamentsUrl);
-
+            if (statusCode != HttpStatusCode.OK) return null;
             File.WriteAllText(fileName, doc.Text);
             File.SetCreationTime(fileName, DateTime.Now);
             return doc;
@@ -72,6 +81,7 @@ namespace ChessStat.Classes
 
             var userInfoUrl = "https://ratings.ruchess.ru/people/" + id;
             doc = htmlWeb.Load(userInfoUrl);
+            if (statusCode != HttpStatusCode.OK) return null;
 
             File.WriteAllText(fileName, doc.Text);
             return doc;
@@ -89,6 +99,8 @@ namespace ChessStat.Classes
 
             var tournamentUrl = "https://ratings.ruchess.ru/tournaments/" + id;
             doc = htmlWeb.Load(tournamentUrl);
+            if (statusCode != HttpStatusCode.OK) return null;
+
             File.WriteAllText(fileName, doc.Text);
             return doc;
         }

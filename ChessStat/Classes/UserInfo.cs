@@ -13,6 +13,7 @@ namespace ChessStat.Classes
 {
     public class UserInfo
     {
+        private readonly Cache _cache = new Cache();
         public StatsReportModel Get(string id)
         {
             var statsReportModel = new StatsReportModel();
@@ -23,12 +24,13 @@ namespace ChessStat.Classes
             GetTournamentsList(id, 1, statsReportModel.Rivals, statsReportModel.TournamentStats, statsReportModel.HardestRivals, statsReportModel.GameStrengths);
 
             statsReportModel.Info = GetCommonStats(id, statsReportModel.Rivals);
-            
+            if (statsReportModel.Info == null) return null;
             foreach (var userInfoRival in statsReportModel.Rivals)
             {
                 if (userInfoRival.Games <= 2) continue;
                 statsReportModel.InconvenientOpponent.Add(new InconvenientOpponent()
                 {
+                    Id = userInfoRival.Id,
                     Name = userInfoRival.Name,
                     Draws = userInfoRival.Draws,
                     Games = userInfoRival.Games,
@@ -83,8 +85,8 @@ namespace ChessStat.Classes
         {
             var result = new CommonInfo();
             
-            var userInfo = new Cache().GetUser(userId);
-            
+            var userInfo = _cache.GetUser(userId);
+            if (userInfo == null) return null;
             result.Name = userInfo.DocumentNode.SelectSingleNode("//div[contains(@class, 'page-header')]/h1").GetDirectInnerText();
             
             result.Games = rivals.Sum(r => r.Games);
@@ -104,8 +106,8 @@ namespace ChessStat.Classes
         /// <param name="gameStrengths"></param>
         private void GetTournamentsList(string userId, int page, List<Rival> rivals, List<TourStat[]> tournamentsStats, List<Game> hardestRivals, List<GameStrength> gameStrengths)
         {
-            var tournamentsInfo = new Cache().GetTournamentInfo(userId, page);
-            var tournaments = tournamentsInfo.DocumentNode.SelectNodes("//table[contains(@class, 'table-hover')]//a")?
+            var tournamentsInfo = _cache.GetTournamentInfo(userId, page);
+            var tournaments = tournamentsInfo?.DocumentNode.SelectNodes("//table[contains(@class, 'table-hover')]//a")?
                 .Select(n => n.GetAttributeValue("href", "")).ToList();
             if (tournaments == null) return;
 
@@ -125,7 +127,8 @@ namespace ChessStat.Classes
         public void GetTournament(string url, string currentUserId, List<Rival> rivals, List<TourStat[]> tournamentsStats, List<Game> hardestRivals, List<GameStrength> gameStrengths)
         {
             var tournamentId = url.Replace("/tournaments/", "");
-            var tournamentPage = new Cache().GetTournament(tournamentId);
+            var tournamentPage = _cache.GetTournament(tournamentId);
+            if (tournamentPage == null) return;
             var tournamentInfo = tournamentPage.DocumentNode.SelectNodes("//div[contains(@class, 'panel-default')]//li");
             var tournamentType = tournamentInfo
                 .FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Метод жеребьёвки:"))?

@@ -74,6 +74,7 @@ namespace ChessStat.Models
 
     public class InconvenientOpponent
     {
+        public string Id { get; set; }
         public string Name { get; set; }
         /// <summary> Процент набранных очков </summary>
         public decimal Points { get; set; }
