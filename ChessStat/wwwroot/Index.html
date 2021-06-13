@@ -140,13 +140,17 @@
             opponentsTable.html("");
             var index = 1;
             rivals.forEach(rival => {
+                // Если процент набранных очков 50% или больше - подсвечиваем зеленым
+                var isGoodResult = rival.wins + rival.draws / 2 >= rival.games / 2
                 var row = $("<tr/>");
+                if (isGoodResult) row.addClass("left marked green");
+                else row.addClass("left marked red");
                 row.append(addCell('#' + index++));
                 row.append(addCell('<a href="https://ratings.ruchess.ru/people/' + rival.id + '" target="_blank">' + rival.name + '</a>'));
                 row.append(addCell(rival.games));
-                row.append(addCell(rival.wins == 0 ? '' : rival.wins));
-                row.append(addCell(rival.draws == 0 ? '' : rival.draws));
-                row.append(addCell(rival.loses == 0 ? '' : rival.loses));
+                row.append(addCell(rival.wins == 0 ? '' : rival.wins, rival.wins > rival.draws && rival.wins > rival.loses, "green"));
+                row.append(addCell(rival.draws == 0 ? '' : rival.draws, rival.draws > rival.wins && rival.draws > rival.loses, "orange"));
+                row.append(addCell(rival.loses == 0 ? '' : rival.loses, rival.loses > rival.draws && rival.loses > rival.wins, "red"));
                 opponentsTable.append(row);
             });
         }
@@ -228,7 +232,6 @@
             totalRow.append(addCell(blackPointPercent + "%", !isWhitePercentBest, !isWhitePercentBest ? 'green' : '', 'lightGray'));
             gameStrengthsTable.append(totalRow);
         }
-
         // Проверяет, является ли текущий показатель лучше другого, учитывая соотношения общего количества игр.
         function isBestValue(current, other, currentTotal, otherTotal) {
             if (currentTotal == 0 && otherTotal == 0) return null;
@@ -480,6 +483,8 @@
                             </thead>
                             <tbody id="opponents"></tbody>
                         </table>
+                        Красным цветом отмечены соперники, с которым набрано менее 50% очков
+                        Зеленым цветом отмечены соперники, с которыми набрано 50% очков и более
                     </div>
                     <div class="title">
                         <i class="dropdown icon"></i>
