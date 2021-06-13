@@ -256,10 +256,12 @@
                 var row = $("<tr/>");
                 row.append(addCell('#' + index++));
                 row.append(addCell('<a href="' + getRivalHref(rival.id) + '" target="_blank">' + rival.name + '</a>'));
+                row.append(addCell(rival.playerElo));
                 row.append(addCell(rival.elo));
                 row.append(addCell(rival.date));
                 row.append(addCell(rival.tournament));
-                row.append(addCell(rival.color, null, null, rival.color=="Черные"? "lightGray": null));
+                row.append(addCell(rival.color, null, null, rival.color == "Черные" ? "lightGray" : null));
+                row.append(addCell(rival.result, null, null, rival.result=="1" ? "green": "olive"))
                 hardestGames.append(row);
             });
         }
@@ -495,19 +497,24 @@
                     </div>
                     <div class="title">
                         <i class="dropdown icon"></i>
-                        Топ-20 самых рейтинговых соперников, которые были обыграны
+                        Топ-20 самых рейтинговых соперников которым не уступили
                     </div>
                     <div class="content">
                         <table class="ui unstackable selectable table">
                             <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Соперник</th>
-                                    <th>Рейтинг</th>
-                                    <th>Дата</th>
-                                    <th>Турнир</th>
-                                    <th>Цвет</th>
-                                </tr>
+                            <tr>
+                                <th rowspan="2">#</th>
+                                <th rowspan="2">Соперник</th>
+                                <th colspan="2" class="center aligned">Рейтинг</th>
+                                <th rowspan="2">Дата</th>
+                                <th rowspan="2">Турнир</th>
+                                <th rowspan="2">Цвет</th>
+                                <th rowspan="2">Результат</th>
+                            </tr>
+                            <tr>
+                                <th>Игрока</th>
+                                <th>Соперника</th>
+                            </tr>
                             </thead>
                             <tbody id="hardestGames"></tbody>
                         </table>

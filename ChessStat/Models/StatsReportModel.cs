@@ -8,10 +8,15 @@ namespace ChessStat.Models
         public StatsReportModel()
         {
             Info = new CommonInfo();
+            // Топ частых соперников
             Rivals = new List<Rival>();
+            // Топ обыгранных сильных соперников
             HardestRivals = new List<Game>();
+            // Статистика выступления по турам
             TournamentStats = new List<TourStat[]>();
+            // Неудобные соперники
             InconvenientOpponent = new List<InconvenientOpponent>();
+            // Сила игры цветами
             GameStrengths = new List<GameStrength>
             {
                 new GameStrength(){ Strength = OpponentStrength.Weak, Black = new GameStrengthStat(), White = new GameStrengthStat()},
@@ -92,12 +97,16 @@ namespace ChessStat.Models
         public string Name { get; set; }
         /// <summary> Сила соперника </summary>
         public int Elo { get; set; }
+        /// <summary> Сила игрока </summary>
+        public int PlayerElo { get; set; }
         /// <summary> Дата игры </summary>
         public string Date { get; set; }
         /// <summary> Название турнира </summary>
         public string Tournament { get; set; }
         /// <summary> Цвет </summary>
         public string Color { get; set; }
+        /// <summary> Результат игры </summary>
+        public string Result { get; set; }
     }
 
     /// <summary> Сила игры по цветам </summary>

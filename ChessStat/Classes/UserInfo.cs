@@ -217,7 +217,7 @@ namespace ChessStat.Classes
 
                 FillTourStat(gameResult, tournamentStats, tourIndex, rivalRate);
                 var rival = FillRivals(rivals, rivalRow, gameResult);
-                FillHardestRivals(hardestRivals, rival, tournamentDate, tournamentName, rivalRate, gameColor, gameResult);
+                FillHardestRivals(hardestRivals, rival, tournamentDate, tournamentName, rivalRate, gameColor, gameResult, playerElo);
                 FillGameStrengthByColor(gameColor, gameStrengths, playerElo, rivalRate, gameResult);
             }
         }
@@ -267,7 +267,7 @@ namespace ChessStat.Classes
 
                 var rival = FillRivals(rivals, rivalRow, gameResult);
 
-                FillHardestRivals(hardestRivals, rival, tournamentDate, tournamentName, rivalRate, gameColor, gameResult);
+                FillHardestRivals(hardestRivals, rival, tournamentDate, tournamentName, rivalRate, gameColor, gameResult, playerElo);
                 FillGameStrengthByColor(gameColor, gameStrengths, playerElo, rivalRate, gameResult);
             }
         }
@@ -331,9 +331,9 @@ namespace ChessStat.Classes
         }
 
         /// <summary> Заполнить список сложнейших игроков </summary>
-        private void FillHardestRivals(List<Game> hardestRivals, Rival rival, string tournamentDate, string tournamentName, int rivalElo, GameColor gameColor, GameResult result)
+        private void FillHardestRivals(List<Game> hardestRivals, Rival rival, string tournamentDate, string tournamentName, int rivalElo, GameColor gameColor, GameResult result, int playerElo)
         {
-            if (result!= GameResult.Win) return;
+            if (result== GameResult.Lose) return;
             // Если у нас список уже заполнен и все в списке сильнее текущего
             if (hardestRivals.Count >= 20 && hardestRivals.All(r=>r.Elo > rivalElo)) return;
 
@@ -344,7 +344,9 @@ namespace ChessStat.Classes
                 Date = tournamentDate,
                 Tournament = tournamentName,
                 Elo = rivalElo,
-                Color = gameColor.GetDescription()
+                Color = gameColor.GetDescription(),
+                Result = result.GetDescription(),
+                PlayerElo = playerElo
             });
         }
 
