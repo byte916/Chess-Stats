@@ -149,7 +149,7 @@ namespace ChessStat.Classes
                 CalculateSwissTournament(tournamentPage, tournamentInfo, currentUserId, rivals, tournamentsStats, hardestRivals, gameStrengths);
             } else if (tournamentType.Contains("Круговая"))
             {
-                CalculateRoundTorunament(tournamentPage, tournamentInfo, currentUserId, rivals, hardestRivals, gameStrengths);
+                CalculateRoundTournament(tournamentPage, tournamentInfo, currentUserId, rivals, hardestRivals, gameStrengths);
             }
         }
 
@@ -220,7 +220,7 @@ namespace ChessStat.Classes
         }
 
         /// <summary> Обсчитать круговой турнир </summary>
-        private void CalculateRoundTorunament(HtmlDocument tournamentPage,
+        private void CalculateRoundTournament(HtmlDocument tournamentPage,
             HtmlNodeCollection tournamentInfo,
             string userId,
             List<Rival> rivals,
@@ -353,6 +353,8 @@ namespace ChessStat.Classes
         /// <param name="result"></param>
         private void FillGameStrengthByColor(GameColor color, List<GameStrength> gameStrengths, int playerElo, int rivalElo, GameResult result)
         {
+            if (rivalElo == 1000) return;
+            
             OpponentStrength opponentStrength = OpponentStrength.Equal;
             if (rivalElo > playerElo + 50)
             {
