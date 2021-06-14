@@ -107,13 +107,26 @@
                 url: 'stat',
                 data: "chessId=" + chessId,
                 success: function (result) {
-                    if (result == null || result == 'null') return errorCallBack();
+                    if (result == null || result == 'null') {
+                        $('body')
+                            .toast({
+                                displayTime: 10000,
+                                class: 'error',
+                                message: `Произошла ошибка. Попробуйте позже или напишите мне <a href='mailto:byte916@yandex.ru'>по почте</a> или <a href='https://vk.com/id2962981' target='_blank'>во вконтакте</a>`
+                            });
+                        return errorCallBack();
+                    }
                     successCallBack();
                     showResult(result);
                 },
                 error: function () {
                     errorCallBack();
-                    alert("Произошла ошибка");
+                    $('body')
+                        .toast({
+                            displayTime: 10000,
+                            class: 'error',
+                            message: `Произошла ошибка. Попробуйте позже или напишите мне <a href='mailto:byte916@yandex.ru'>по почте</a> или <a href='https://vk.com/id2962981' target='_blank'>во вконтакте</a>`
+                        });
                 }
             });
         }
