@@ -39,7 +39,7 @@
             background-color: #DDD;
         }
     </style>
-<script>
+    <script>
         $(document).ready(() => {
             $('.ui.accordion').accordion();
 
@@ -68,11 +68,12 @@
                     // Успешная загрузка
                     () => {
                         setTimeout(() => {
+                            $(".contacts").hide();
                             $(".dimmer").dimmer("hide");
                             $("#main-search").css("display", "none");
                             $("#content").fadeIn(100);
                         }, 300);
-                        $(".head-chess-id").val(id)
+                        $(".head-chess-id").val(id);
                     },
                     // Не успешная загрузка
                     () => {
@@ -159,7 +160,7 @@
                 if (isGoodResult) row.addClass("left marked green");
                 else row.addClass("left marked red");
                 row.append(addCell('#' + index++));
-                
+
                 row.append(addCell('<a href="' + getRivalHref(rival.id) + '" target="_blank">' + rival.name + '</a>'));
                 row.append(addCell(rival.games));
                 row.append(addCell(rival.wins == 0 ? '' : rival.wins, rival.wins > rival.draws && rival.wins > rival.loses, "green"));
@@ -252,13 +253,13 @@
             if (currentTotal == 0) currentTotal = 1;
             if (otherTotal == 0) otherTotal = 1;
             return current / currentTotal >= other / otherTotal;
-    }
+        }
 
-    function getRivalHref(id) {
-        if (id == null) return id;
-        if (id.indexOf("ratings.fide") == -1) return 'https://ratings.ruchess.ru/people/' + id;
-        return id;
-    }
+        function getRivalHref(id) {
+            if (id == null) return id;
+            if (id.indexOf("ratings.fide") == -1) return 'https://ratings.ruchess.ru/people/' + id;
+            return id;
+        }
 
         function fillHardestGames(hardestRivals) {
             // Заполняем топ-сложных соперников
@@ -274,7 +275,7 @@
                 row.append(addCell(rival.date));
                 row.append(addCell(rival.tournament));
                 row.append(addCell(rival.color, null, null, rival.color == "Черные" ? "lightGray" : null));
-                row.append(addCell(rival.result, null, null, rival.result=="1" ? "green": "olive"))
+                row.append(addCell(rival.result, null, null, rival.result == "1" ? "green" : "olive"))
                 hardestGames.append(row);
             });
         }
@@ -395,7 +396,10 @@
                         </h1>
                     </div>
                     <div class="center aligned mobile only column">
-                        <h1 class="ui header">Статистика ФШР</h1>
+                        <h1 class="ui header">
+                            <i class="circular small chess king icon"></i>
+                            <div class="content">Статистика ФШР</div>
+                        </h1>
                     </div>
                     <div class="tablet computer only right aligned column">
                         <div class="ui right action left icon input">
@@ -515,19 +519,19 @@
                     <div class="content">
                         <table class="ui unstackable selectable table">
                             <thead>
-                            <tr>
-                                <th rowspan="2">#</th>
-                                <th rowspan="2">Соперник</th>
-                                <th colspan="2" class="center aligned">Рейтинг</th>
-                                <th rowspan="2">Дата</th>
-                                <th rowspan="2">Турнир</th>
-                                <th rowspan="2">Цвет</th>
-                                <th rowspan="2">Результат</th>
-                            </tr>
-                            <tr>
-                                <th>Игрока</th>
-                                <th>Соперника</th>
-                            </tr>
+                                <tr>
+                                    <th rowspan="2">#</th>
+                                    <th rowspan="2">Соперник</th>
+                                    <th colspan="2" class="center aligned">Рейтинг</th>
+                                    <th rowspan="2">Дата</th>
+                                    <th rowspan="2">Турнир</th>
+                                    <th rowspan="2">Цвет</th>
+                                    <th rowspan="2">Результат</th>
+                                </tr>
+                                <tr>
+                                    <th>Игрока</th>
+                                    <th>Соперника</th>
+                                </tr>
                             </thead>
                             <tbody id="hardestGames"></tbody>
                         </table>
@@ -557,9 +561,21 @@
                         Сила игры по ходу турнира
                     </div>
                     <div class="content" id="toursStats"></div>
+                    <div class="title" onclick="$('.ui.modal').modal('show');">
+                        <i class="caret right icon"></i>Обратная связь
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="ui tiny modal">
+        <div class="header" style="">Обратная связь</div>
+        <div class="content">
+            Сообщения об ошибках, пожелания и предложения вы можете направлять по почте <a href="mailto:byte916@yandex.ru">byte916@yandex.ru</a> или через <a href="https://vk.com/id2962981" target="_blank">ВКонтакте</a>
+        </div>
+    </div>
+    <a style="position: absolute; bottom: 0; right: 0" href="#" onclick="$('.ui.modal').modal('show');" class="ui tertiary big icon  button contacts">
+        <i class="envelope icon"></i>
+    </a>
 </body>
 </html>
