@@ -248,7 +248,8 @@ namespace ChessStat.Classes
             {
                 // Получаем результат игры в текущем туре
                 var tourResult = userRow.ChildNodes[i].GetDirectInnerText();
-                if (userRow.ChildNodes[i].GetAttributeValue("colspan", 0) == 2) addition = 1;
+                if (userRow.ChildNodes[i].GetAttributeValue("colspan", 1) != 1)
+                    addition = userRow.ChildNodes[i].GetAttributeValue("colspan", 1) - 1;
                 if (tourResult == "♞" || tourResult == "") continue;
                 
                 // Получаем соперника в текущем туре
