@@ -27,7 +27,7 @@ namespace ChessStat.Classes
             if (statsReportModel.Info == null) return null;
             foreach (var userInfoRival in statsReportModel.Rivals)
             {
-                if (userInfoRival.Games <= 2) continue;
+                if (userInfoRival.Games <= 2 || userInfoRival.Loses == 0) continue;
                 statsReportModel.InconvenientOpponent.Add(new InconvenientOpponent()
                 {
                     Id = userInfoRival.Id,
