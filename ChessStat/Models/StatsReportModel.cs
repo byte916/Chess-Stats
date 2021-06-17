@@ -23,6 +23,8 @@ namespace ChessStat.Models
                 new GameStrength(){ Strength = OpponentStrength.Equal, Black = new GameStrengthStat(), White = new GameStrengthStat()},
                 new GameStrength(){ Strength = OpponentStrength.Strong, Black = new GameStrengthStat(), White = new GameStrengthStat()},
             };
+            // Список игр в текущем турнире
+            CurrentTournament = new CurrentTournament();
         }
         public CommonInfo Info { get; set; }
 
@@ -34,6 +36,7 @@ namespace ChessStat.Models
         public List<TourStat[]> TournamentStats { get; set; }
         public List<InconvenientOpponent> InconvenientOpponent { get; set; }
         public List<GameStrength> GameStrengths { get; set; }
+        public CurrentTournament CurrentTournament { get; set; }
     }
 
     public class CommonInfo
@@ -126,4 +129,26 @@ namespace ChessStat.Models
         public int Games { get; set; }
     }
 
+    public class CurrentTournament
+    {
+        public string Name { get; set; }
+        public string Date { get; set; }
+        public List<TournamentGame> Games { get; set; }
+    }
+
+    public class TournamentGame
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public CommonStat TotalStat { get; set; }
+        public decimal Result { get; set; }
+        public GameColor Color { get; set; }
+    }
+
+    public class CommonStat
+    {
+        public int Wins { get; set; }
+        public int Draws { get; set; }
+        public int Loses { get; set; }
+    }
 }

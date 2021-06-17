@@ -139,6 +139,7 @@
             fillHardestGames(result.hardestRivals);
             fillTournamentsStats(result.tournamentStats);
             fillInconenientOpponents(result.inconvenientOpponent);
+            fillCurrentTournament(result.currentTournament)
         }
 
         function fillCommonStats(commonStats) {
@@ -351,17 +352,52 @@
                 inconvenientOpponentTable.append(row);
             })
         }
-        function addCell(data, isStrong, colorText, colorBack) {
+        function addCell(data, isStrong, colorText, colorBack, classes) {
             var style = 'ui';
             if (colorText != null) style = style + ' text ' + colorText;
 
             var cell = $("<td/>");
 
+            if (classes == null) classes = '';
             if (colorBack != null) cell.addClass(colorBack);
+            cell.addClass(classes);
             if (isStrong) style = style + ' bold'
             data = "<span class='" + style + "'>" + data + "</strong>";
             cell.html(data);
             return cell;
+        }
+
+        function fillCurrentTournament(currentTournament) {
+            var block = $("#lastTournament");
+            var content = block.children("div");
+            content.html('');
+            content.prepend("<strong>" + currentTournament.name + "</strong> (" + currentTournament.date.trim() + ")");
+            var tbody = block.find("table > tbody");
+            tbody.html('');
+
+            currentTournament.games.forEach(game => {
+                var row = $("<tr>");
+                row.append(addCell('<a href="' + getRivalHref(game.id) + '" target="_blank">' + game.name + '</a>'));
+                var resultTextColor = '';
+                var resultBackColor = '';
+                if (game.color == "0") {
+                    resultTextColor = 'white';
+                    resultBackColor = 'black';
+                } else {
+                    resultBackColor = 'white';
+                    resultTextColor = 'black';
+                }
+                var gameResult = game.result;
+                if (game.result == 0.5) gameResult = '½';
+                row.append(addCell(gameResult, null, resultTextColor, resultBackColor, "center aligned"));
+                console.log(game.totalStat);
+                if (game.totalStat != null) {
+                    row.append(addCell(game.totalStat.wins == 0 ? '' : game.totalStat.wins, null, "green", null, "right aligned"));
+                    row.append(addCell(game.totalStat.draws == 0 ? '' : game.totalStat.draws, null, "orange", null, "right aligned"));
+                    row.append(addCell(game.totalStat.loses == 0 ? '' : game.totalStat.loses, null, "red", null, "right aligned"));
+                }
+                tbody.append(row);
+            });
         }
     </script>
     <div class="ui page dimmer">
@@ -378,7 +414,7 @@
                         <input class="main-chess-id" type="text" placeholder="ID РШФ" />
                     </div>
                     <div class="field">
-                        <input class="ui green main-seach-button button" type="button" value="Получить" onclick="ym(80552305,'reachGoal','main_button_click')"/>
+                        <input class="ui green main-seach-button button" type="button" value="Получить" onclick="ym(80552305,'reachGoal','main_button_click')" />
                     </div>
                 </div>
             </div>
@@ -420,7 +456,7 @@
         </div>
         <div class="ui vertical placeholder segment">
             <div class="ui center aligned container">
-                <h2 id="name"></h2>
+                <h1 id="name"></h1>
                 <div class="ui hidden divider"></div>
                 <div class="ui hidden divider"></div>
             </div>
@@ -455,6 +491,28 @@
         <div class="ui vertical segment">
             <div class="ui container">
                 <div class="ui fluid accordion">
+                    <div class="title">
+                        <i class="dropdown icon"></i>
+                        Последний турнир
+                    </div>
+                    <div class="content" id="lastTournament">
+                        <div></div>
+                        <table class="ui table">
+                            <thead>
+                                <tr>
+                                    <th rowspan="2">Имя</th>
+                                    <th rowspan="2" class="center aligned">Результат</th>
+                                    <th colspan="3" class="center aligned">История встреч</th>
+                                </tr>
+                                <tr>
+                                    <th class="right aligned">+</th>
+                                    <th class="right aligned">=</th>
+                                    <th class="right aligned">-</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
                     <div class="title">
                         <i class="dropdown icon"></i>
                         Сила игры и цвет
@@ -509,7 +567,7 @@
                             </thead>
                             <tbody id="opponents"></tbody>
                         </table>
-                        Красным цветом отмечены соперники, с которым набрано менее 50% очков<br/>
+                        Красным цветом отмечены соперники, с которым набрано менее 50% очков<br />
                         Зеленым цветом отмечены соперники, с которыми набрано 50% очков и более
                     </div>
                     <div class="title">

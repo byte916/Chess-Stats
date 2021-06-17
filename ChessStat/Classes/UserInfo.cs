@@ -14,6 +14,8 @@ namespace ChessStat.Classes
     public class UserInfo
     {
         private readonly Cache _cache = new Cache();
+        /// <summary> Последний турнир, в котором участвовал игрок </summary>
+        private HtmlDocument _lastToutnament;
         public StatsReportModel Get(string id)
         {
             var statsReportModel = new StatsReportModel();
@@ -21,8 +23,8 @@ namespace ChessStat.Classes
             id = id.Trim();
 
             if (string.IsNullOrWhiteSpace(id)) return null;
-            GetTournamentsList(id, 1, statsReportModel.Rivals, statsReportModel.TournamentStats, statsReportModel.HardestRivals, statsReportModel.GameStrengths);
-
+            GetTournamentsList(id, 1, statsReportModel);
+            
             statsReportModel.Info = GetCommonStats(id, statsReportModel.Rivals);
             if (statsReportModel.Info == null) return null;
             foreach (var userInfoRival in statsReportModel.Rivals)
@@ -42,6 +44,7 @@ namespace ChessStat.Classes
 
 
             var maxGames = Convert.ToDecimal(statsReportModel.Rivals.Any() ? statsReportModel.Rivals.Max(r => r.Games): 1);
+            FillLastTournament(statsReportModel);
             statsReportModel.InconvenientOpponent = statsReportModel
                 .InconvenientOpponent
                 .OrderByDescending(o =>
@@ -100,20 +103,17 @@ namespace ChessStat.Classes
         /// <summary> Получить список турниров на странице </summary>
         /// <param name="userId"></param>
         /// <param name="page"></param>
-        /// <param name="rivals"></param>
-        /// <param name="tournamentsStats"></param>
-        /// <param name="hardestRivals"></param>
-        /// <param name="gameStrengths"></param>
-        private void GetTournamentsList(string userId, int page, List<Rival> rivals, List<TourStat[]> tournamentsStats, List<Game> hardestRivals, List<GameStrength> gameStrengths)
+        /// <param name="statsReportModel"></param>
+        private void GetTournamentsList(string userId, int page, StatsReportModel statsReportModel)
         {
             var tournamentsInfo = _cache.GetTournamentInfo(userId, page);
             var tournaments = tournamentsInfo?.DocumentNode.SelectNodes("//table[contains(@class, 'table-hover')]//a")?
                 .Select(n => n.GetAttributeValue("href", "")).ToList();
             if (tournaments == null) return;
-
+            
             foreach (var tournament in tournaments)
             {
-                GetTournament(tournament, userId, rivals, tournamentsStats, hardestRivals, gameStrengths);
+                GetTournament(tournament, userId, statsReportModel);
             }
 
             var nextPage =
@@ -121,14 +121,15 @@ namespace ChessStat.Classes
                     "//ul[contains(@class, 'pagination')]//li[contains(@class,'next_page')]");
             if (nextPage == null) return;
             if (nextPage.HasClass("disabled")) return;
-            GetTournamentsList(userId, page + 1, rivals, tournamentsStats, hardestRivals,gameStrengths);
+            GetTournamentsList(userId, page + 1, statsReportModel);
         }
 
-        public void GetTournament(string url, string currentUserId, List<Rival> rivals, List<TourStat[]> tournamentsStats, List<Game> hardestRivals, List<GameStrength> gameStrengths)
+        public void GetTournament(string url, string currentUserId, StatsReportModel statsReportModel)
         {
             var tournamentId = url.Replace("/tournaments/", "");
             var tournamentPage = _cache.GetTournament(tournamentId);
             if (tournamentPage == null) return;
+            if (_lastToutnament == null) _lastToutnament = tournamentPage;
             var tournamentInfo = tournamentPage.DocumentNode.SelectNodes("//div[contains(@class, 'panel-default')]//li");
             var tournamentType = tournamentInfo
                 .FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Метод жеребьёвки:"))?
@@ -149,23 +150,21 @@ namespace ChessStat.Classes
             }
             if (tournamentType.Contains("Швейцарская"))
             {
-                CalculateSwissTournament(tournamentPage, tournamentInfo, currentUserId, rivals, tournamentsStats, hardestRivals, gameStrengths);
+                CalculateSwissTournament(tournamentPage, tournamentInfo, currentUserId, statsReportModel);
             } else if (tournamentType.Contains("Круговая"))
             {
-                CalculateRoundTournament(tournamentPage, tournamentInfo, currentUserId, rivals, hardestRivals, gameStrengths);
+                CalculateRoundTournament(tournamentPage, tournamentInfo, currentUserId, statsReportModel);
             }
         }
 
         /// <summary> Обсчитать турнир прошедший по швейцарской системе </summary>
         private void CalculateSwissTournament(HtmlDocument tournamentPage, 
             HtmlNodeCollection tournamentInfo,
-            string userId, 
-            List<Rival> rivals, 
-            List<TourStat[]> tournamentsStats, 
-            List<Game> hardestRivals,
-            List<GameStrength> gameStrengths)
+            string userId,
+            StatsReportModel statsReportModel)
         {
-
+            var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
+            if (isFirstTournament) statsReportModel.CurrentTournament.Games = new List<TournamentGame>();
             var tournamentDate = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText();
             var tournamentName = tournamentPage.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText();
             var users = tournamentPage.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]//tr");
@@ -176,7 +175,7 @@ namespace ChessStat.Classes
             if (userRow == null) return;
 
             // Получаем/создаём статистику по силе игры по турам
-            var tournamentStats = tournamentsStats.FirstOrDefault(t => t.Count() == userRow.ChildNodes.Count - 9);
+            var tournamentStats = statsReportModel.TournamentStats.FirstOrDefault(t => t.Count() == userRow.ChildNodes.Count - 9);
             if (tournamentStats == null)
             {
                 tournamentStats = new TourStat[userRow.ChildNodes.Count - 9];
@@ -184,7 +183,7 @@ namespace ChessStat.Classes
                 {
                     tournamentStats[i] = new TourStat();
                 }
-                tournamentsStats.Add(tournamentStats);
+                statsReportModel.TournamentStats.Add(tournamentStats);
             }
 
             var playerElo = int.Parse(userRow.ChildNodes[3].GetDirectInnerText());
@@ -193,7 +192,6 @@ namespace ChessStat.Classes
             {
                 // Заполняем статистику по силе игры в текущем туре
                 var tourIndex = i - 4;
-                
                 // Получаем результат игры в текущем туре
                 var tourResult = userRow.ChildNodes[i].GetDirectInnerText();
                 // Если результат игры невалидный, пропускаем тур
@@ -201,6 +199,7 @@ namespace ChessStat.Classes
                 {
                     continue;
                 }
+
 
                 // Получаем соперника в текущем туре
                 var rivalNumber = tourResult.Substring(0, tourResult.IndexOfAny(new[] { 'б', 'ч' }));
@@ -216,9 +215,20 @@ namespace ChessStat.Classes
                         : GameResult.Draw;
 
                 FillTourStat(gameResult, tournamentStats, tourIndex, rivalRate);
-                var rival = FillRivals(rivals, rivalRow, gameResult);
-                FillHardestRivals(hardestRivals, rival, tournamentDate, tournamentName, rivalRate, gameColor, gameResult, playerElo);
-                FillGameStrengthByColor(gameColor, gameStrengths, playerElo, rivalRate, gameResult);
+                var rival = FillRivals(statsReportModel.Rivals, rivalRow, gameResult);
+                FillHardestRivals(statsReportModel.HardestRivals, rival, tournamentDate, tournamentName, rivalRate, gameColor, gameResult, playerElo);
+                FillGameStrengthByColor(gameColor, statsReportModel.GameStrengths, playerElo, rivalRate, gameResult);
+
+                if (isFirstTournament)
+                {
+                    statsReportModel.CurrentTournament.Games.Add(new TournamentGame
+                    {
+                        Name = rival.Name,
+                        Color = gameColor,
+                        Id = rival.Id,
+                        Result = (decimal)gameResult / 2
+                    });
+                }
             }
         }
 
@@ -226,10 +236,10 @@ namespace ChessStat.Classes
         private void CalculateRoundTournament(HtmlDocument tournamentPage,
             HtmlNodeCollection tournamentInfo,
             string userId,
-            List<Rival> rivals,
-            List<Game> hardestRivals,
-            List<GameStrength> gameStrengths)
+            StatsReportModel statsReportModel)
         {
+            var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
+            if (isFirstTournament) statsReportModel.CurrentTournament.Games = new List<TournamentGame>();
             var tournamentDate = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText();
             var tournamentName = tournamentPage.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText();
             var users = tournamentPage.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]//tr");
@@ -266,10 +276,21 @@ namespace ChessStat.Classes
                     ? GameColor.Black
                     : GameColor.White;
 
-                var rival = FillRivals(rivals, rivalRow, gameResult);
+                var rival = FillRivals(statsReportModel.Rivals, rivalRow, gameResult);
 
-                FillHardestRivals(hardestRivals, rival, tournamentDate, tournamentName, rivalRate, gameColor, gameResult, playerElo);
-                FillGameStrengthByColor(gameColor, gameStrengths, playerElo, rivalRate, gameResult);
+                FillHardestRivals(statsReportModel.HardestRivals, rival, tournamentDate, tournamentName, rivalRate, gameColor, gameResult, playerElo);
+                FillGameStrengthByColor(gameColor, statsReportModel.GameStrengths, playerElo, rivalRate, gameResult);
+
+                if (isFirstTournament)
+                {
+                    statsReportModel.CurrentTournament.Games.Add(new TournamentGame
+                    {
+                        Name = rival.Name,
+                        Color = gameColor,
+                        Id = rival.Id,
+                        Result = (decimal)gameResult / 2
+                    });
+                }
             }
         }
 
@@ -390,6 +411,26 @@ namespace ChessStat.Classes
                     gameStrength.Loses++;
                     break;
             }
+        }
+
+        private void FillLastTournament(StatsReportModel statsReportModel)
+        {
+            if (_lastToutnament == null) return;
+
+            var tournamentInfo = _lastToutnament.DocumentNode.SelectNodes("//div[contains(@class, 'panel-default')]//li");
+            statsReportModel.CurrentTournament.Date = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText().Trim();
+            statsReportModel.CurrentTournament.Name = _lastToutnament.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText().Trim();
+            statsReportModel.CurrentTournament.Games.ForEach(g =>
+            {
+                var opponent = statsReportModel.Rivals.FirstOrDefault(r => r.Id == g.Id);
+                if (opponent == null) return;
+                g.TotalStat = new CommonStat()
+                {
+                    Wins = opponent.Wins,
+                    Draws = opponent.Draws,
+                    Loses = opponent.Loses
+                };
+            });
         }
     }
 }
