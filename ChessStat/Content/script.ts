@@ -100,6 +100,7 @@ function showResult(result) {
 
 function fillCommonStats(commonStats) {
     $("#name").html(commonStats.name);
+    $("#maxRate").html('<h3 style="margin-bottom:0;">Максимальный рейтинг: ' + commonStats.maxRate + '</h3><small>(' + commonStats.maxDate + ')</small>');
     $("#games").text(commonStats.games);
     $("#wins").text(commonStats.wins);
     $("#draws").text(commonStats.draws);
@@ -376,6 +377,7 @@ function fillCurrentTournament(currentTournament) {
         row.append(addCell(totalRow.totalStat.draws == 0 ? '' : totalRow.totalStat.draws, true, "orange", null, "right aligned"));
         row.append(addCell(totalRow.totalStat.loses == 0 ? '' : totalRow.totalStat.loses, true, "red", null, "right aligned"));
     }
+
     row.append(addCell(''));
     tbody.append(row);
 }

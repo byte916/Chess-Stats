@@ -25,7 +25,7 @@ namespace ChessStat.Classes
             if (string.IsNullOrWhiteSpace(id)) return null;
             GetTournamentsList(id, 1, statsReportModel);
             
-            statsReportModel.Info = GetCommonStats(id, statsReportModel.Rivals);
+            statsReportModel.Info = GetCommonStats(id, statsReportModel.Rivals, statsReportModel.Info);
             if (statsReportModel.Info == null) return null;
             foreach (var userInfoRival in statsReportModel.Rivals)
             {
@@ -86,7 +86,7 @@ namespace ChessStat.Classes
         /// <summary>
         /// Получить общую информацию
         /// </summary>
-        private CommonInfo GetCommonStats(string userId, List<Rival> rivals)
+        private CommonInfo GetCommonStats(string userId, List<Rival> rivals, CommonInfo commonInfo)
         {
             var result = new CommonInfo();
             
@@ -98,7 +98,8 @@ namespace ChessStat.Classes
             result.Wins = rivals.Sum(r => r.Wins);
             result.Draws = rivals.Sum(r => r.Draws);
             result.Loses = rivals.Sum(r => r.Loses);
-
+            result.MaxRate = commonInfo.MaxRate;
+            result.MaxDate = commonInfo.MaxDate;
             return result;
         }
 
@@ -187,7 +188,12 @@ namespace ChessStat.Classes
             }
 
             var playerElo = int.Parse(userRow.ChildNodes[3].GetDirectInnerText());
-
+            var maxElo = int.Parse(userRow.ChildNodes[userRow.ChildNodes.Count - 2].FirstChild.GetDirectInnerText());
+            if (statsReportModel.Info.MaxRate <= maxElo)
+            {
+                statsReportModel.Info.MaxRate = maxElo;
+                statsReportModel.Info.MaxDate = tournamentName + ' ' + tournamentDate;
+            }
             var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
             if (isFirstTournament)
             {
