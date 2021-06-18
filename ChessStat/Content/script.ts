@@ -331,7 +331,9 @@ function fillCurrentTournament(currentTournament) {
     var tbody = block.find("table > tbody");
     tbody.html('');
 
-    currentTournament.games.forEach(game => {
+    for (let i = 0; i < currentTournament.games.length-1; i++) {
+        const game = currentTournament.games[i];
+        
         var row = $("<tr>");
         row.append(addCell('<a href="' + getRivalHref(game.id) + '" target="_blank">' + game.name + '</a>'));
         var resultTextColor = '';
@@ -357,5 +359,23 @@ function fillCurrentTournament(currentTournament) {
         }
         row.append(addCell(game.comment));
         tbody.append(row);
-    });
+    }
+
+    const totalRow = currentTournament.games[currentTournament.games.length - 1];
+    var row = $("<tr>");
+    row.append(addCell(totalRow.name, true));
+
+    row.append(addCell(totalRow.rate, true, null, null, "right aligned"));
+
+    var gameResult = totalRow.result;
+    if (totalRow.result == 0.5) gameResult = '½';
+    row.append(addCell(gameResult, true, null, null, "center aligned"));
+
+    if (totalRow.totalStat != null) {
+        row.append(addCell(totalRow.totalStat.wins == 0 ? '' : totalRow.totalStat.wins, true, "green", null, "right aligned"));
+        row.append(addCell(totalRow.totalStat.draws == 0 ? '' : totalRow.totalStat.draws, true, "orange", null, "right aligned"));
+        row.append(addCell(totalRow.totalStat.loses == 0 ? '' : totalRow.totalStat.loses, true, "red", null, "right aligned"));
+    }
+    row.append(addCell(''));
+    tbody.append(row);
 }
