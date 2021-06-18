@@ -25,8 +25,11 @@ namespace ChessStat.Models
             };
             // Список игр в текущем турнире
             CurrentTournament = new CurrentTournament();
+            TimeControls = new List<string>();
         }
         public CommonInfo Info { get; set; }
+        /// <summary> Список контролей времени </summary>
+        public List<string> TimeControls { get; set; }
 
         public List<Rival> Rivals { get; set; }
 

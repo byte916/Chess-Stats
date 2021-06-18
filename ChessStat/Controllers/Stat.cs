@@ -7,9 +7,9 @@ namespace ChessStat.Controllers
     {
         [HttpGet]
         [Route("[controller]")]
-        public JsonResult Get(string chessId)
+        public JsonResult Get(string chessId, string timeControl)
         {
-            var userInfo = new UserInfo().Get(chessId);
+            var userInfo = new UserInfo().Get(chessId, timeControl);
             return new JsonResult(userInfo);
         }
     }

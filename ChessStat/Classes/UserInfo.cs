@@ -16,14 +16,14 @@ namespace ChessStat.Classes
         private readonly Cache _cache = new Cache();
         /// <summary> Последний турнир, в котором участвовал игрок </summary>
         private HtmlDocument _lastToutnament;
-        public StatsReportModel Get(string id)
+        public StatsReportModel Get(string id, string timeControl)
         {
             var statsReportModel = new StatsReportModel();
             if (string.IsNullOrWhiteSpace(id)) return null;
             id = id.Trim();
 
             if (string.IsNullOrWhiteSpace(id)) return null;
-            GetTournamentsList(id, 1, statsReportModel);
+            GetTournamentsList(id, 1, statsReportModel, timeControl);
             
             statsReportModel.Info = GetCommonStats(id, statsReportModel.Rivals, statsReportModel.Info);
             if (statsReportModel.Info == null) return null;
@@ -107,24 +107,28 @@ namespace ChessStat.Classes
         /// <param name="userId"></param>
         /// <param name="page"></param>
         /// <param name="statsReportModel"></param>
-        private void GetTournamentsList(string userId, int page, StatsReportModel statsReportModel)
+        private void GetTournamentsList(string userId, int page, StatsReportModel statsReportModel, string timeControl)
         {
             var tournamentsInfo = _cache.GetTournamentInfo(userId, page);
-            var tournaments = tournamentsInfo?.DocumentNode.SelectNodes("//table[contains(@class, 'table-hover')]//a")?
-                .Select(n => n.GetAttributeValue("href", "")).ToList();
+            var tournaments = tournamentsInfo?.DocumentNode.SelectNodes("//table[contains(@class, 'table-hover')]/tr");
+                
             if (tournaments == null) return;
             
             foreach (var tournament in tournaments)
             {
-                GetTournament(tournament, userId, statsReportModel);
+                var tc = tournament.ChildNodes.Where(c => c.NodeType != HtmlNodeType.Text).ToArray()[1].GetDirectInnerText();
+                if (timeControl != null && timeControl!= tc) continue;
+                
+                var url = tournament.ChildNodes.First(c=>c.NodeType != HtmlNodeType.Text).ChildNodes.First(c => c.NodeType != HtmlNodeType.Text).GetAttributeValue("href", "");
+                if (statsReportModel.TimeControls.All(t=>t!= tc)) statsReportModel.TimeControls.Add(tc);
+
+                GetTournament(url, userId, statsReportModel);
             }
 
-            var nextPage =
-                tournamentsInfo.DocumentNode.SelectSingleNode(
-                    "//ul[contains(@class, 'pagination')]//li[contains(@class,'next_page')]");
+            var nextPage = tournamentsInfo.DocumentNode.SelectSingleNode("//ul[contains(@class, 'pagination')]//li[contains(@class,'next_page')]");
             if (nextPage == null) return;
             if (nextPage.HasClass("disabled")) return;
-            GetTournamentsList(userId, page + 1, statsReportModel);
+            GetTournamentsList(userId, page + 1, statsReportModel, timeControl);
         }
 
         public void GetTournament(string url, string currentUserId, StatsReportModel statsReportModel)

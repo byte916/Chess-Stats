@@ -59,12 +59,40 @@
                 }, 300);
             })
     })
+
+    $("#timeControls").on("click", (item) => {
+        if (item.target.classList.contains("active")) return;
+        let timeControl = item.target.innerText == 'Все' ? null : item.target.innerText;
+        $(".dimmer").dimmer({
+            closable: false
+        }).dimmer("show");
+        loadResults($(".head-chess-id").val(),
+            // Успешная загрузка
+            () => {
+                setTimeout(() => {
+                    $(".dimmer").dimmer("hide");
+                }, 300);
+                $("#timeControls .active").removeClass("active green");
+                item.target.classList.add("active");
+                item.target.classList.add("green");
+            },
+            // Не успешная загрузка
+            () => {
+                setTimeout(() => {
+                    $(".dimmer").dimmer("hide");
+                }, 300);
+            }, timeControl)
+    })
 })
 
-function loadResults(chessId, successCallBack, errorCallBack) {
+function loadResults(chessId, successCallBack, errorCallBack, timeControl?) {
+    let tcParam = '';
+    if (timeControl != null) {
+        tcParam = "&timeControl=" + timeControl;
+    }
     $.ajax({
         url: 'stat',
-        data: "chessId=" + chessId,
+        data: "chessId=" + chessId + tcParam,
         success: function (result) {
             if (result == null || result == 'null') {
                 $('body').toast({
@@ -76,6 +104,7 @@ function loadResults(chessId, successCallBack, errorCallBack) {
             }
             successCallBack();
             showResult(result);
+            if (timeControl == null) fillTimeControls(result.timeControls);
         },
         error: function () {
             errorCallBack();
@@ -106,6 +135,7 @@ function fillCommonStats(commonStats) {
     $("#draws").text(commonStats.draws);
     $("#loses").text(commonStats.loses);
 }
+
 function fillOpponents(rivals) {
     // Заполняем топ-частых соперников
     var opponentsTable = $("#opponents");
@@ -127,6 +157,18 @@ function fillOpponents(rivals) {
         opponentsTable.append(row);
     });
 }
+
+function fillTimeControls(timeControls: string[]) {
+    const block = $("#timeControls");
+    block.html('');
+    if (timeControls.length == 1) return;
+    block.append("<button class='ui active green button'>Все</button>")
+    timeControls.forEach(t => {
+        
+        block.append("<button class='ui button'>" + t +"</button>")
+    })
+}
+
 function fillColorStrength(gameStrengths) {
     var gameStrengthsTable = $("#gameStrengths");
     gameStrengthsTable.html("");
