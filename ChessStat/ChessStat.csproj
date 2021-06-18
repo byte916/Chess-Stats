@@ -3,14 +3,28 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>615d3b53-9e40-444d-8c07-da97be1a0973</UserSecretsId>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\scripts\" />
+    <Content Remove="wwwroot\scripts\script.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Content\custom-fomantic-definition.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\scripts\script.js" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.34" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <TypeScriptCompile Include="Content\custom-fomantic-definition.ts" />
+    <TypeScriptCompile Include="Content\script.ts" />
   </ItemGroup>
 
 </Project>

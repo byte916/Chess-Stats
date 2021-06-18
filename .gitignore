@@ -4,3 +4,6 @@ ChessStat/obj/
 ChessStat/Cache/
 ChessStat/Properties/PublishProfiles/
 *.user
+ChessStat/node_modules/
+ChessStat/wwwroot/scripts/
+ChessStat/package-lock.json
