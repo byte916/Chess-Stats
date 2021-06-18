@@ -46,6 +46,7 @@ namespace ChessStat.Models
     {
         /// <summary> Имя шахматиста </summary>
         public string Name { get; set; }
+        public int Rate { get; set; }
         public int MaxRate { get; set; }
         public string MaxDate { get; set; }
         public int Games { get; set; }

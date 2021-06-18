@@ -14,7 +14,6 @@
                 }
             });
     });
-
     // Клик на кнопке Поиск в главном блоке
     $(".main-seach-button").on("click", () => {
         $(".dimmer").dimmer({
@@ -129,6 +128,7 @@ function showResult(result) {
 
 function fillCommonStats(commonStats) {
     $("#name").html(commonStats.name);
+    $("#rate").html('<h2>Рейтинг: ' + commonStats.rate + '</h2>');
     $("#maxRate").html('<h3 style="margin-bottom:0;">Максимальный рейтинг: ' + commonStats.maxRate + '</h3><small>(' + commonStats.maxDate + ')</small>');
     $("#games").text(commonStats.games);
     $("#wins").text(commonStats.wins);

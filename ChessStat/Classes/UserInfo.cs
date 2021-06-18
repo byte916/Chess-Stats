@@ -88,19 +88,14 @@ namespace ChessStat.Classes
         /// </summary>
         private CommonInfo GetCommonStats(string userId, List<Rival> rivals, CommonInfo commonInfo)
         {
-            var result = new CommonInfo();
-            
             var userInfo = _cache.GetUser(userId);
             if (userInfo == null) return null;
-            result.Name = userInfo.DocumentNode.SelectSingleNode("//div[contains(@class, 'page-header')]/h1").GetDirectInnerText();
-            
-            result.Games = rivals.Sum(r => r.Games);
-            result.Wins = rivals.Sum(r => r.Wins);
-            result.Draws = rivals.Sum(r => r.Draws);
-            result.Loses = rivals.Sum(r => r.Loses);
-            result.MaxRate = commonInfo.MaxRate;
-            result.MaxDate = commonInfo.MaxDate;
-            return result;
+            commonInfo.Name = userInfo.DocumentNode.SelectSingleNode("//div[contains(@class, 'page-header')]/h1").GetDirectInnerText();
+            commonInfo.Games = rivals.Sum(r => r.Games);
+            commonInfo.Wins = rivals.Sum(r => r.Wins);
+            commonInfo.Draws = rivals.Sum(r => r.Draws);
+            commonInfo.Loses = rivals.Sum(r => r.Loses);
+            return commonInfo;
         }
 
         /// <summary> Получить список турниров на странице </summary>
@@ -202,6 +197,7 @@ namespace ChessStat.Classes
             if (isFirstTournament)
             {
                 statsReportModel.CurrentTournament.Rate = playerElo;
+                statsReportModel.Info.Rate = maxElo;
                 statsReportModel.CurrentTournament.Games = new List<TournamentGame>();
             }
             for (var i = 4; i < userRow.ChildNodes.Count - 5; i++)
@@ -270,6 +266,7 @@ namespace ChessStat.Classes
             var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
             if (isFirstTournament)
             {
+                statsReportModel.Info.Rate = playerElo;
                 statsReportModel.CurrentTournament.Games = new List<TournamentGame>();
                 statsReportModel.CurrentTournament.Rate = playerElo;
             }
