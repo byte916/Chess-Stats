@@ -44,7 +44,6 @@ namespace ChessStat.Classes
 
 
             var maxGames = Convert.ToDecimal(statsReportModel.Rivals.Any() ? statsReportModel.Rivals.Max(r => r.Games): 1);
-            FillLastTournament(statsReportModel);
             statsReportModel.InconvenientOpponent = statsReportModel
                 .InconvenientOpponent
                 .OrderByDescending(o =>
@@ -60,8 +59,11 @@ namespace ChessStat.Classes
                 .Take(20)
                 .ToList();
 
+            var allRivals = statsReportModel.Rivals;
             statsReportModel.Rivals = statsReportModel.Rivals.OrderByDescending(r => r.Games).Take(20).ToList();
             statsReportModel.HardestRivals = statsReportModel.HardestRivals.OrderByDescending(r => r.Elo).Take(20).ToList();
+
+            FillLastTournament(statsReportModel, allRivals);
 
             statsReportModel.TournamentStats = statsReportModel.TournamentStats.OrderByDescending(t => t.Length).ToList();
             foreach (var userInfoTournamentStat in statsReportModel.TournamentStats)
@@ -163,8 +165,6 @@ namespace ChessStat.Classes
             string userId,
             StatsReportModel statsReportModel)
         {
-            var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
-            if (isFirstTournament) statsReportModel.CurrentTournament.Games = new List<TournamentGame>();
             var tournamentDate = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText();
             var tournamentName = tournamentPage.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText();
             var users = tournamentPage.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]//tr");
@@ -188,6 +188,12 @@ namespace ChessStat.Classes
 
             var playerElo = int.Parse(userRow.ChildNodes[3].GetDirectInnerText());
 
+            var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
+            if (isFirstTournament)
+            {
+                statsReportModel.CurrentTournament.Rate = playerElo;
+                statsReportModel.CurrentTournament.Games = new List<TournamentGame>();
+            }
             for (var i = 4; i < userRow.ChildNodes.Count - 5; i++)
             {
                 // Заполняем статистику по силе игры в текущем туре
@@ -224,9 +230,11 @@ namespace ChessStat.Classes
                     statsReportModel.CurrentTournament.Games.Add(new TournamentGame
                     {
                         Name = rival.Name,
+                        Rate = rivalRate,
                         Color = gameColor,
                         Id = rival.Id,
-                        Result = (decimal)gameResult / 2
+                        Result = (decimal)gameResult / 2,
+                        RateDiff = playerElo - rivalRate
                     });
                 }
             }
@@ -238,8 +246,6 @@ namespace ChessStat.Classes
             string userId,
             StatsReportModel statsReportModel)
         {
-            var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
-            if (isFirstTournament) statsReportModel.CurrentTournament.Games = new List<TournamentGame>();
             var tournamentDate = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText();
             var tournamentName = tournamentPage.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText();
             var users = tournamentPage.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]//tr");
@@ -251,6 +257,12 @@ namespace ChessStat.Classes
             var header = tournamentPage.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]/thead/tr/th").ToList();
             var playerElo = int.Parse(userRow.ChildNodes[3].GetDirectInnerText());
 
+            var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
+            if (isFirstTournament)
+            {
+                statsReportModel.CurrentTournament.Games = new List<TournamentGame>();
+                statsReportModel.CurrentTournament.Rate = playerElo;
+            }
             // В спаренных круговых турнирах встречаются сдвоенные ячейки (когда столбец с результатами для самого себя, пример https://ratings.ruchess.ru/tournaments/18865)
             // В таких турнирах после такой ячейки надо при получении значения заголовка добавлять единицу к текущему индексу
             var addition = 0;
@@ -286,9 +298,11 @@ namespace ChessStat.Classes
                     statsReportModel.CurrentTournament.Games.Add(new TournamentGame
                     {
                         Name = rival.Name,
+                        Rate = rivalRate,
                         Color = gameColor,
                         Id = rival.Id,
-                        Result = (decimal)gameResult / 2
+                        Result = (decimal)gameResult / 2,
+                        RateDiff = playerElo - rivalRate
                     });
                 }
             }
@@ -413,7 +427,7 @@ namespace ChessStat.Classes
             }
         }
 
-        private void FillLastTournament(StatsReportModel statsReportModel)
+        private void FillLastTournament(StatsReportModel statsReportModel, List<Rival> allRivals)
         {
             if (_lastToutnament == null) return;
 
@@ -422,7 +436,7 @@ namespace ChessStat.Classes
             statsReportModel.CurrentTournament.Name = _lastToutnament.DocumentNode.SelectSingleNode("//h1[contains(@class, 'page-header')]").GetDirectInnerText().Trim();
             statsReportModel.CurrentTournament.Games.ForEach(g =>
             {
-                var opponent = statsReportModel.Rivals.FirstOrDefault(r => r.Id == g.Id);
+                var opponent = allRivals.FirstOrDefault(r => r.Id == g.Id);
                 if (opponent == null) return;
                 g.TotalStat = new CommonStat()
                 {
@@ -430,6 +444,31 @@ namespace ChessStat.Classes
                     Draws = opponent.Draws,
                     Loses = opponent.Loses
                 };
+                g.Hardest = statsReportModel.HardestRivals.FindIndex(r => r.Id == g.Id && r.Elo == g.Rate);
+                g.Inconvenient = statsReportModel.InconvenientOpponent.FindIndex(r => r.Id == g.Id);
+                var frequentOpponent = statsReportModel.Rivals.FindIndex(r => r.Id == g.Id);
+                g.Comment = "";
+
+                if (frequentOpponent != -1) g.Comment += "Соперник из ТОП-" + (frequentOpponent + 1) + " частых соперников<br>";
+                if (g.Hardest != -1 && g.Result != 0) g.Comment += "Новый рекорд! Соперник из ТОП-"+ (g.Hardest+1) + " сильнейших соперников<br>";
+                if (g.Inconvenient != -1) g.Comment += "Соперник из ТОП-" + (g.Inconvenient+1) + " неудобных соперников<br>";
+                if (g.RateDiff < -50 && g.Hardest == -1)
+                {
+                    if (g.Result == 1) g.Comment += "Победа над сильным соперником, разница в силе " + g.RateDiff * -1 + "<br>";
+                    else if (g.Result == 0.5m) g.Comment += "Ничья с сильным соперником, разница в силе " + g.RateDiff * -1 + "<br>";
+                }
+            });
+            statsReportModel.CurrentTournament.Games.Add(new TournamentGame()
+            {
+                Name = "Итого и среднее",
+                Rate = Convert.ToInt32(statsReportModel.CurrentTournament.Games.Average(g=>g.Rate)),
+                Result = statsReportModel.CurrentTournament.Games.Sum(g=>g.Result),
+                TotalStat = new CommonStat()
+                {
+                    Wins = statsReportModel.CurrentTournament.Games.Count(g => g.Result == 1),
+                    Draws = statsReportModel.CurrentTournament.Games.Count(g => g.Result == 0.5m),
+                    Loses = statsReportModel.CurrentTournament.Games.Count(g => g.Result == 0)
+                }
             });
         }
     }

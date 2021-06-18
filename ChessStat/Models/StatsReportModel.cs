@@ -133,6 +133,8 @@ namespace ChessStat.Models
     {
         public string Name { get; set; }
         public string Date { get; set; }
+        /// <summary> Рейт игрока </summary>
+        public int Rate { get; set; }
         public List<TournamentGame> Games { get; set; }
     }
 
@@ -140,7 +142,16 @@ namespace ChessStat.Models
     {
         public string Id { get; set; }
         public string Name { get; set; }
+        /// <summary> Рейт соперника </summary>
+        public int Rate { get; set; }
         public CommonStat TotalStat { get; set; }
+        public string Comment { get; set; }
+        /// <summary> Является ли победа новым рекордом </summary>
+        public int Hardest { get; set; }
+        /// <summary> Является ли соперник сильным (50+ рейтинг ЭЛО) </summary>
+        public int RateDiff { get; set; }
+        /// <summary> Является ли соперник неудобным </summary>
+        public int Inconvenient { get; set; }
         public decimal Result { get; set; }
         public GameColor Color { get; set; }
     }
