@@ -187,7 +187,12 @@ namespace ChessStat.Classes
             }
 
             var playerElo = int.Parse(userRow.ChildNodes[3].GetDirectInnerText());
-            var maxElo = int.Parse(userRow.ChildNodes[userRow.ChildNodes.Count - 2].FirstChild.GetDirectInnerText());
+            int maxElo = 0;
+            if (userRow.ChildNodes[userRow.ChildNodes.Count - 2].FirstChild.GetDirectInnerText() != "")
+            {
+                maxElo = int.Parse(userRow.ChildNodes[userRow.ChildNodes.Count - 2].FirstChild.GetDirectInnerText());
+            }
+
             if (statsReportModel.Info.MaxRate <= maxElo)
             {
                 statsReportModel.Info.MaxRate = maxElo;

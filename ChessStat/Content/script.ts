@@ -1,4 +1,5 @@
-﻿$(document).ready(() => {
+﻿declare var ym: any;
+$(document).ready(() => {
     $('.ui.accordion').accordion();
 
     // Включаем анимацию для цифр общей статистики
@@ -24,6 +25,7 @@
         loadResults(id,
             // Успешная загрузка
             () => {
+                ym(80552305, 'reachGoal', 'main_button_click')
                 setTimeout(() => {
                     $(".contacts").hide();
                     $(".dimmer").dimmer("hide");

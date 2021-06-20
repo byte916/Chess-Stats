@@ -94,15 +94,35 @@ namespace ChessStat.Classes
             if (File.Exists(fileName))
             {
                 doc.LoadHtml(File.ReadAllText(fileName));
-                return doc;
+                if (CheckTournament(doc))
+                {
+                    return doc;
+                }
             }
 
             var tournamentUrl = "https://ratings.ruchess.ru/tournaments/" + id;
             doc = htmlWeb.Load(tournamentUrl);
             if (statusCode != HttpStatusCode.OK) return null;
 
+            if (!CheckTournament(doc))
+            {
+                return null;
+            }
+
             File.WriteAllText(fileName, doc.Text);
             return doc;
+        }
+
+        /// <summary> Проверяем турнир, если ЭЛО всех игроков в конце турнира оказалось равно тысяче, значит турнир еще не обработан в РШФ </summary>
+        /// <returns></returns>
+        private bool CheckTournament(HtmlDocument tournament)
+        {
+            var users = tournament.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]/tr");
+            if (users.All(u => u.ChildNodes[u.ChildNodes.Count - 2].GetDirectInnerText() == "1000"))
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
