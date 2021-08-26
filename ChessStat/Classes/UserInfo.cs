@@ -60,7 +60,7 @@ namespace ChessStat.Classes
                 .ToList();
 
             var allRivals = statsReportModel.Rivals;
-            statsReportModel.Rivals = statsReportModel.Rivals.OrderByDescending(r => r.Games).Take(20).ToList();
+            statsReportModel.Rivals = statsReportModel.Rivals.OrderByDescending(r => r.Games).Where(r=>r.Games >= 2).Take(20).ToList();
             statsReportModel.HardestRivals = statsReportModel.HardestRivals.OrderByDescending(r => r.Elo).Take(20).ToList();
 
             FillLastTournament(statsReportModel, allRivals);
@@ -187,6 +187,7 @@ namespace ChessStat.Classes
             }
 
             var playerElo = int.Parse(userRow.ChildNodes[3].GetDirectInnerText());
+            // Унифицировать с круговыми
             int maxElo = 0;
             if (userRow.ChildNodes[userRow.ChildNodes.Count - 2].FirstChild.GetDirectInnerText() != "")
             {
@@ -343,6 +344,11 @@ namespace ChessStat.Classes
             }
         }
 
+        /// <summary> Заполнить силу игры по ходу турнира </summary>
+        /// <param name="gameResult"></param>
+        /// <param name="tournamentStats"></param>
+        /// <param name="tourIndex"></param>
+        /// <param name="rivalElo"></param>
         private void FillTourStat(GameResult gameResult, TourStat[] tournamentStats, int tourIndex, int rivalElo)
         {
             var tourStat = tournamentStats[tourIndex];
@@ -361,10 +367,10 @@ namespace ChessStat.Classes
                     tourStat.Wins++;
                     break;
                 case GameResult.Draw:
-                    tourStat.Loses++;
+                    tourStat.Draws++;
                     break;
                 case GameResult.Lose:
-                    tourStat.Draws++;
+                    tourStat.Loses++;
                     break;
             }
         }

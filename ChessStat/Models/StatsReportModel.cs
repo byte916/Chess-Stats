@@ -28,6 +28,7 @@ namespace ChessStat.Models
             TimeControls = new List<string>();
         }
         public CommonInfo Info { get; set; }
+
         /// <summary> Список контролей времени </summary>
         public List<string> TimeControls { get; set; }
 
@@ -35,8 +36,11 @@ namespace ChessStat.Models
 
         /// <summary> Список самых рейтинговых соперников которые были обыграны </summary>
         public List<Game> HardestRivals { get; set; }
+
         /// <summary> Статистика выступлений по турам </summary>
         public List<TourStat[]> TournamentStats { get; set; }
+
+        /// <summary> Неудобные соперники </summary>
         public List<InconvenientOpponent> InconvenientOpponent { get; set; }
         public List<GameStrength> GameStrengths { get; set; }
         public CurrentTournament CurrentTournament { get; set; }

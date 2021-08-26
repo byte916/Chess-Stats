@@ -171,6 +171,7 @@ function fillTimeControls(timeControls: string[]) {
     })
 }
 
+// Сила игры цветами
 function fillColorStrength(gameStrengths) {
     var gameStrengthsTable = $("#gameStrengths");
     gameStrengthsTable.html("");
@@ -196,7 +197,9 @@ function fillColorStrength(gameStrengths) {
                 break;
         }
         var whitePointPercent = Math.round(rivals.white.points * 100 / rivals.white.games);
+        if (rivals.white.games == 0) whitePointPercent = 0;
         var blackPointPercent = Math.round(rivals.black.points * 100 / rivals.black.games);
+        if (rivals.black.games == 0) blackPointPercent = 0;
         totalWinsWhite += rivals.white.wins;
         totalWinsBlack += rivals.black.wins;
         totalDrawsWhite += rivals.white.draws;
