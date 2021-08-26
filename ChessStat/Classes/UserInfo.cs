@@ -225,12 +225,22 @@ namespace ChessStat.Classes
                 var rivalRate = int.Parse(rivalRow.ChildNodes[3].InnerText);
 
                 var gameColor = tourResult.Contains('б') ? GameColor.Black : GameColor.White;
-                var gameResult = tourResult.EndsWith('1')
-                    ? GameResult.Win
-                    : tourResult.EndsWith('0')
-                        ? GameResult.Lose
-                        : GameResult.Draw;
-
+                GameResult gameResult;
+                if (tourResult.EndsWith('1'))
+                {
+                    gameResult = GameResult.Win;
+                } else if (tourResult.EndsWith('0'))
+                {
+                    gameResult = GameResult.Lose;
+                } else if (tourResult.EndsWith('½'))
+                {
+                    gameResult = GameResult.Draw;
+                }
+                else
+                {
+                    // TODO: Добавить логгирование
+                    continue;
+                }
                 FillTourStat(gameResult, tournamentStats, tourIndex, rivalRate);
                 var rival = FillRivals(statsReportModel.Rivals, rivalRow, gameResult);
                 FillHardestRivals(statsReportModel.HardestRivals, rival, tournamentDate, tournamentName, rivalRate, gameColor, gameResult, playerElo);
@@ -268,13 +278,26 @@ namespace ChessStat.Classes
             var header = tournamentPage.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]/thead/tr/th").ToList();
             var playerElo = int.Parse(userRow.ChildNodes[3].GetDirectInnerText());
 
+
+            int maxElo = 0;
+            if (userRow.ChildNodes[userRow.ChildNodes.Count - 2].FirstChild.GetDirectInnerText() != "")
+            {
+                maxElo = int.Parse(userRow.ChildNodes[userRow.ChildNodes.Count - 2].FirstChild.GetDirectInnerText());
+            }
+
+            if (statsReportModel.Info.MaxRate <= maxElo)
+            {
+                statsReportModel.Info.MaxRate = maxElo;
+                statsReportModel.Info.MaxDate = tournamentName + ' ' + tournamentDate;
+            }
             var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
             if (isFirstTournament)
             {
-                statsReportModel.Info.Rate = playerElo;
+                statsReportModel.Info.Rate = maxElo;
                 statsReportModel.CurrentTournament.Games = new List<TournamentGame>();
                 statsReportModel.CurrentTournament.Rate = playerElo;
             }
+
             // В спаренных круговых турнирах встречаются сдвоенные ячейки (когда столбец с результатами для самого себя, пример https://ratings.ruchess.ru/tournaments/18865)
             // В таких турнирах после такой ячейки надо при получении значения заголовка добавлять единицу к текущему индексу
             var addition = 0;
