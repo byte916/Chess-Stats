@@ -1,20 +1,6 @@
 ﻿declare var ym: any;
 $(document).ready(() => {
     $('.ui.accordion').accordion();
-
-    // Включаем анимацию для цифр общей статистики
-    $('.count').each(function () {
-        $(this).prop('Counter', 0).animate({
-            Counter: $(this).text()
-        },
-            {
-                duration: 1000,
-                easing: 'swing',
-                step: function (now) {
-                    this.innerHTML = Math.ceil(now).toString().replace(/(\d)(?=(\d{3})+(\D|$))/g, '$1&thinsp;');
-                }
-            });
-    });
     // Клик на кнопке Поиск в главном блоке
     $(".main-seach-button").on("click", () => {
         $(".dimmer").dimmer({
@@ -84,6 +70,33 @@ $(document).ready(() => {
                 }, 300);
             }, timeControl)
     })
+
+    if (window.location.hash != '') {
+        $(".dimmer").dimmer({
+            closable: false
+        }).dimmer("show");
+        var chessId = window.location.hash.replace('#', '');
+
+
+        loadResults(chessId,
+            // Успешная загрузка
+            () => {
+                ym(80552305, 'reachGoal', 'get_report_by_link')
+                setTimeout(() => {
+                    $(".contacts").hide();
+                    $(".dimmer").dimmer("hide");
+                    $("#main-search").css("display", "none");
+                    $("#content").fadeIn(100);
+                }, 300);
+                $(".head-chess-id").val(chessId);
+            },
+            // Не успешная загрузка
+            () => {
+                setTimeout(() => {
+                    $(".dimmer").dimmer("hide");
+                }, 300);
+            })
+    }
 })
 
 function loadResults(chessId, successCallBack, errorCallBack, timeControl?) {
@@ -104,7 +117,7 @@ function loadResults(chessId, successCallBack, errorCallBack, timeControl?) {
                 return errorCallBack();
             }
             successCallBack();
-            showResult(result);
+            showResult(result, chessId);
             if (timeControl == null) fillTimeControls(result.timeControls);
         },
         error: function () {
@@ -118,9 +131,10 @@ function loadResults(chessId, successCallBack, errorCallBack, timeControl?) {
     });
 }
 
-function showResult(result) {
+function showResult(result, chessId) {
+    console.log("show result");
     fillOpponents(result.rivals);
-    fillCommonStats(result.info);
+    fillCommonStats(result.info, chessId);
     fillColorStrength(result.gameStrengths);
     fillHardestGames(result.hardestRivals);
     fillTournamentsStats(result.tournamentStats);
@@ -128,7 +142,10 @@ function showResult(result) {
     fillCurrentTournament(result.currentTournament)
 }
 
-function fillCommonStats(commonStats) {
+function fillCommonStats(commonStats, chessId) {
+    var title = commonStats.name + " | Шахматная статистика";
+    window.location.hash = chessId;
+    $('title').text(title);
     $("#name").html(commonStats.name);
     $("#rate").html('<h2>Рейтинг: ' + commonStats.rate + '</h2>');
     $("#maxRate").html('<h3 style="margin-bottom:0;">Максимальный рейтинг: ' + commonStats.maxRate + '</h3><small>(' + commonStats.maxDate + ')</small>');
@@ -138,8 +155,11 @@ function fillCommonStats(commonStats) {
     $("#loses").text(commonStats.loses);
 }
 
+/**
+ * Заполнить топ-частых соперников
+ * @param rivals
+ */
 function fillOpponents(rivals) {
-    // Заполняем топ-частых соперников
     var opponentsTable = $("#opponents");
     opponentsTable.html("");
     var index = 1;
