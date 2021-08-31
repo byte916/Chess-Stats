@@ -117,12 +117,9 @@ namespace ChessStat.Classes
         /// <returns></returns>
         private bool CheckTournament(HtmlDocument tournament)
         {
-            var users = tournament.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]/tr");
-            if (users.All(u =>
-            {
-                var innerText = u.ChildNodes[u.ChildNodes.Count - 2].InnerText;
-                return innerText== "1000" || innerText == "";
-            }))
+            var head = tournament.DocumentNode.SelectNodes("//table[contains(@class, 'table-condensed')]/thead/tr");
+
+            if (head[0].ChildNodes[^2].InnerHtml != "R<sub>нов</sub>")
             {
                 return false;
             }
