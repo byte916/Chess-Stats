@@ -199,7 +199,9 @@ namespace ChessStat.Classes
                 statsReportModel.Info.MaxRate = maxElo;
                 statsReportModel.Info.MaxDate = tournamentName + ' ' + tournamentDate;
             }
-            var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
+
+            var isFirstTournament = statsReportModel.CurrentTournament.Games == null ||
+                                    statsReportModel.CurrentTournament.Games.Count == 0;
             if (isFirstTournament)
             {
                 statsReportModel.CurrentTournament.Rate = playerElo;
@@ -291,7 +293,9 @@ namespace ChessStat.Classes
                 statsReportModel.Info.MaxRate = maxElo;
                 statsReportModel.Info.MaxDate = tournamentName + ' ' + tournamentDate;
             }
-            var isFirstTournament = statsReportModel.CurrentTournament.Games == null;
+
+            var isFirstTournament = statsReportModel.CurrentTournament.Games == null ||
+                                    statsReportModel.CurrentTournament.Games.Count == 0;
             if (isFirstTournament)
             {
                 statsReportModel.Info.Rate = maxElo;
@@ -468,9 +472,13 @@ namespace ChessStat.Classes
             }
         }
 
+        /// <summary> Заполнить данные по последнему турниру </summary>
+        /// <param name="statsReportModel"></param>
+        /// <param name="allRivals"></param>
         private void FillLastTournament(StatsReportModel statsReportModel, List<Rival> allRivals)
         {
             if (_lastToutnament == null) return;
+            
 
             var tournamentInfo = _lastToutnament.DocumentNode.SelectNodes("//div[contains(@class, 'panel-default')]//li");
             statsReportModel.CurrentTournament.Date = tournamentInfo.FirstOrDefault(t => t.ChildNodes.Any(c => c.InnerText == "Дата проведения:" || c.InnerText == "Даты проведения:"))?.GetDirectInnerText().Trim();

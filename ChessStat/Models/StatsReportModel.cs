@@ -23,7 +23,7 @@ namespace ChessStat.Models
                 new GameStrength(){ Strength = OpponentStrength.Equal, Black = new GameStrengthStat(), White = new GameStrengthStat()},
                 new GameStrength(){ Strength = OpponentStrength.Strong, Black = new GameStrengthStat(), White = new GameStrengthStat()},
             };
-            // Список игр в текущем турнире
+            // Список игр в текущем (последнем) турнире
             CurrentTournament = new CurrentTournament();
             TimeControls = new List<string>();
         }
@@ -141,10 +141,13 @@ namespace ChessStat.Models
 
     public class CurrentTournament
     {
+        /// <summary> Название турнира </summary>
         public string Name { get; set; }
+        /// <summary> Дата проведения турнира </summary>
         public string Date { get; set; }
         /// <summary> Рейт игрока </summary>
         public int Rate { get; set; }
+        /// <summary> Список игр на турнире </summary>
         public List<TournamentGame> Games { get; set; }
     }
 
