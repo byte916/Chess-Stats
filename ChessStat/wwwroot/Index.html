@@ -96,7 +96,10 @@
         </div>
         <div class="ui vertical placeholder segment">
             <div class="ui center aligned container">
-                <h1 id="name"></h1>
+                <h1>
+                    <span id="name"></span>
+                    <div style="display: inline-block; position: relative; top: -12px;" id="ya-share" class="ya-share2" data-curtain data-limit="0" data-more-button-type="short" data-services="vkontakte,odnoklassniki,telegram,twitter,whatsapp"></div>
+                </h1>
                 <div id="rate"></div>
                 <div id="maxRate"></div>
                 <div class="ui hidden divider"></div>
@@ -129,11 +132,11 @@
                 </div>
             </div>
         </div>
-    <div class="ui basic vertical segment">
-        <div class="ui container">
-            <div id="timeControls" class="ui fluid buttons"></div>
+        <div class="ui basic vertical segment">
+            <div class="ui container">
+                <div id="timeControls" class="ui fluid buttons"></div>
+            </div>
         </div>
-    </div>
         <div class="ui vertical segment">
             <div class="ui container">
                 <div class="ui fluid accordion">
@@ -284,5 +287,6 @@
     <a style="position: absolute; bottom: 0; right: 0" href="#" onclick="$('.ui.modal').modal('show');" class="ui tertiary big icon  button contacts">
         <i class="envelope icon"></i>
     </a>
+    <script src="https://yastatic.net/share2/share.js"></script>
 </body>
 </html>

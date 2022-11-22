@@ -1,5 +1,13 @@
 ﻿declare var ym: any;
+declare var Ya: any;
 $(document).ready(() => {
+    Ya.share2('ya-share', {
+        hooks: {
+            onshare: function (name) {
+                ym(80552305, 'reachGoal', 'share_click,' + name);
+            }
+        }
+    });
     $('.ui.accordion').accordion();
     // Клик на кнопке Поиск в главном блоке
     $(".main-seach-button").on("click", () => {
@@ -119,6 +127,12 @@ function loadResults(chessId, successCallBack, errorCallBack, timeControl?) {
             successCallBack();
             showResult(result, chessId);
             if (timeControl == null) fillTimeControls(result.timeControls);
+
+            Ya.share2('ya-share').updateContent({
+                title: 'Мои шахматные результаты',
+                description: '#ШахматнаяСтатистика',
+                url: location.href
+            });
         },
         error: function () {
             errorCallBack();
